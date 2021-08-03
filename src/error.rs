@@ -1,5 +1,6 @@
 #[derive(Debug)]
 pub enum MdmbError {
     Default,
-    ApplicationError
+    ApplicationError,
+    TempalteRenderError{reason: String}
 }

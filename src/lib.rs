@@ -2,6 +2,7 @@ mod opts;
 mod error;
 mod scaffold;
 mod output;
+mod template;
 
 use crate::error::MdmbError;
 use crate::opts::{parse_cli_args};
