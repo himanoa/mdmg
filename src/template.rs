@@ -4,9 +4,8 @@ use crate::error::MdmbError;
 use serde::Serialize;
 use inflector::Inflector;
 
-
 #[derive(Debug, Serialize, Default)]
-struct MdmgCtx {
+pub struct MdmgCtx {
     pub identify:String 
 }
 
@@ -80,7 +79,7 @@ fn kebab_case_helper(
     Ok(())
 }
 
-fn render(template_str: &str, ctx: &MdmgCtx) -> Result<String> {
+pub fn render(template_str: &str, ctx: &MdmgCtx) -> Result<String> {
     let mut handlebars = Handlebars::new();
 
     handlebars.register_helper("pascal_case", Box::new(pascal_case_helper));
