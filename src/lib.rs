@@ -3,6 +3,7 @@ mod error;
 mod scaffold;
 mod output;
 mod template;
+mod markdown;
 
 use crate::error::MdmbError;
 use crate::opts::{parse_cli_args};
