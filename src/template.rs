@@ -98,8 +98,7 @@ pub fn render(template_str: &str, ctx: &MdmgCtx) -> Result<String> {
     handlebars.register_helper("snake_case", Box::new(snake_case_helper));
 
     handlebars
-        .render_template(template_str, ctx)
-        .or_else(|e| Err(MdmbError::TempalteRenderError { reason: e.desc }))
+        .render_template(template_str, ctx).map_err(|e| MdmbError::TempalteRenderError { reason: e.desc })
 }
 
 #[cfg(test)]

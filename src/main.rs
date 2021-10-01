@@ -3,5 +3,5 @@ use mdmg::Result;
 
 fn main() -> Result<()> {
     println!("Hello, world!");
-    return run();
+    run()
 }

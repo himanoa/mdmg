@@ -5,7 +5,7 @@ use comrak::{parse_document, Arena, ComrakOptions};
 
 pub fn parse(markdown: &str) -> Result<Vec<Scaffold>> {
     let arena = Arena::new();
-    let doc = parse_document(&arena, &markdown, &ComrakOptions::default());
+    let doc = parse_document(&arena, markdown, &ComrakOptions::default());
 
     let mut scaffolds: Vec<Scaffold> = vec![];
 
@@ -32,7 +32,7 @@ pub fn parse(markdown: &str) -> Result<Vec<Scaffold>> {
         }
 
         if let NodeValue::Text(txt_vec) = node.data.clone().into_inner().value {
-            if txt_vec.len() == 0 {
+            if txt_vec.is_empty() {
                 return scaffolds;
             }
             let title_txt = String::from_utf8(txt_vec);
@@ -42,7 +42,7 @@ pub fn parse(markdown: &str) -> Result<Vec<Scaffold>> {
         }
 
         if let NodeValue::CodeBlock(ncb) = node.data.clone().into_inner().value {
-            if ncb.literal.len() == 0 {
+            if ncb.literal.is_empty() {
                 return scaffolds;
             }
 
@@ -67,7 +67,7 @@ pub fn parse(markdown: &str) -> Result<Vec<Scaffold>> {
                 }
             }
         }
-        return scaffolds;
+        scaffolds
     });
 
     Ok(scaffolds.clone())
@@ -99,7 +99,7 @@ mod tests {
 }
 ```
 "#;
-        let scaffolds = parse(&markdown).unwrap();
+        let scaffolds = parse(markdown).unwrap();
         let file_body = r#"use crate::Result;
 
 fn something() -> Result<String> {

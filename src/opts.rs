@@ -11,5 +11,5 @@ pub struct Opts {
 }
 
 pub fn parse_cli_args() -> Opts {
-    return Opts::from_args();
+    Opts::from_args()
 }
