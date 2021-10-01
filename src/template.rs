@@ -1,17 +1,19 @@
-use handlebars::{Context, Handlebars, Helper, JsonRender, Output, RenderContext, RenderError};
-use crate::Result;
 use crate::error::MdmbError;
-use serde::Serialize;
+use crate::Result;
+use handlebars::{Context, Handlebars, Helper, JsonRender, Output, RenderContext, RenderError};
 use inflector::Inflector;
+use serde::Serialize;
 
 #[derive(Debug, Serialize, Default)]
 pub struct MdmgCtx {
-    pub identify:String 
+    pub identify: String,
 }
 
 impl MdmgCtx {
     fn new(identify: &str) -> Self {
-        Self { identify: identify.to_string() }
+        Self {
+            identify: identify.to_string(),
+        }
     }
 }
 
@@ -24,7 +26,9 @@ fn pascal_case_helper(
 ) -> std::result::Result<(), RenderError> {
     let target = h
         .param(0)
-        .ok_or(RenderError::new("Param 0 is required for pascal_case_decorator."))
+        .ok_or(RenderError::new(
+            "Param 0 is required for pascal_case_decorator.",
+        ))
         .map(|s| s.value().render())?;
     let rendered = target.to_pascal_case();
     out.write(&rendered)?;
@@ -40,7 +44,9 @@ fn camel_case_helper(
 ) -> std::result::Result<(), RenderError> {
     let target = h
         .param(0)
-        .ok_or(RenderError::new("Param 0 is required for camel_case_decorator."))
+        .ok_or(RenderError::new(
+            "Param 0 is required for camel_case_decorator.",
+        ))
         .map(|s| s.value().render())?;
     let rendered = target.to_camel_case();
     out.write(&rendered)?;
@@ -56,7 +62,9 @@ fn snake_case_helper(
 ) -> std::result::Result<(), RenderError> {
     let target = h
         .param(0)
-        .ok_or(RenderError::new("Param 0 is required for snake_case_decorator."))
+        .ok_or(RenderError::new(
+            "Param 0 is required for snake_case_decorator.",
+        ))
         .map(|s| s.value().render())?;
     let rendered = target.to_snake_case();
     out.write(&rendered)?;
@@ -72,7 +80,9 @@ fn kebab_case_helper(
 ) -> std::result::Result<(), RenderError> {
     let target = h
         .param(0)
-        .ok_or(RenderError::new("Param 0 is required for kebab_case_decorator."))
+        .ok_or(RenderError::new(
+            "Param 0 is required for kebab_case_decorator.",
+        ))
         .map(|s| s.value().render())?;
     let rendered = target.to_kebab_case();
     out.write(&rendered)?;
@@ -87,16 +97,15 @@ pub fn render(template_str: &str, ctx: &MdmgCtx) -> Result<String> {
     handlebars.register_helper("kebab_case", Box::new(kebab_case_helper));
     handlebars.register_helper("snake_case", Box::new(snake_case_helper));
 
-    handlebars.render_template(
-        template_str,
-        ctx
-    ).or_else(|e| Err(MdmbError::TempalteRenderError{reason: e.desc}))
+    handlebars
+        .render_template(template_str, ctx)
+        .or_else(|e| Err(MdmbError::TempalteRenderError { reason: e.desc }))
 }
 
 #[cfg(test)]
 mod tests {
-    use std::default::Default;
     use super::*;
+    use std::default::Default;
 
     #[test]
     fn render_returning_the_piyopoyo() {
@@ -105,12 +114,18 @@ mod tests {
 
     #[test]
     fn render_returning_the_himanoa() {
-        assert_eq!(render("{{identify}}", &MdmgCtx::new("himanoa")).unwrap(), "himanoa")
+        assert_eq!(
+            render("{{identify}}", &MdmgCtx::new("himanoa")).unwrap(),
+            "himanoa"
+        )
     }
 
     #[test]
     fn render_returning_the_variable() {
-        assert_eq!(render("{{identify}}", &MdmgCtx::new("himanoa")).unwrap(), "himanoa")
+        assert_eq!(
+            render("{{identify}}", &MdmgCtx::new("himanoa")).unwrap(),
+            "himanoa"
+        )
     }
 
     #[test]
