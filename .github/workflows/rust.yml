@@ -68,7 +68,7 @@ jobs:
       uses: actions-rs/cargo@v1
       with:
         command: clippy
-        args: --verbose --all --all-targets --all-features -- -D warnings
+        args: --verbose --all --all-targets --all-features
 
     - name: Build
       uses: actions-rs/cargo@v1
