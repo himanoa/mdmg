@@ -1,4 +1,4 @@
-use structopt::{StructOpt, clap};
+use structopt::{clap, StructOpt};
 
 #[derive(StructOpt)]
 #[structopt(name = clap::crate_name!(), about = clap::crate_description!(), author = clap::crate_authors!(), version = clap::crate_version!(), setting(clap::AppSettings::ColoredHelp))]
