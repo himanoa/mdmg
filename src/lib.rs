@@ -16,9 +16,9 @@ pub type Result<T> = anyhow::Result<T, MdmgError>;
 
 pub fn run() -> Result<()> {
     match parse_cli_args() {
-        Mdmg::Generate { plan_name, component_name } => {
+        Mdmg::Generate { plan_name, component_name, dry_run } => {
             let command = GenerateCommandImpl::new();
-            command.run(plan_name, component_name)?;
+            command.run(plan_name, component_name, dry_run)?;
         }
     };
     Ok(())

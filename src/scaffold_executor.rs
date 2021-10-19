@@ -1,8 +1,11 @@
 use crate::scaffold::Scaffold;
 use crate::Result;
+
 use std::io::Write;
 use std::path::Path;
 use std::fs::{create_dir_all, File};
+
+use yansi::Paint;
 
 pub trait ScaffoldExecutor {
     fn execute(self, scaffold: &Scaffold) -> Result<()>;
@@ -14,6 +17,12 @@ pub struct DryRunScaffoldExecutor{
 
 #[derive(Clone, Debug, Copy)]
 pub struct FSScaffoldExecutor{}
+
+impl FSScaffoldExecutor {
+    pub fn new () -> Self {
+        FSScaffoldExecutor {}
+    }
+}
 
 impl DryRunScaffoldExecutor {
     pub fn new () -> Self {
@@ -39,12 +48,17 @@ impl ScaffoldExecutor for FSScaffoldExecutor {
     fn execute(self, scaffold: &Scaffold) -> Result<()> {
         match scaffold {
             Scaffold::Complete  { file_name, file_body } => {
+                if Path::new(file_name).exists() == true {
+                    println!("{} {} (file_exists)", Paint::yellow("Skip generate:"), file_name);
+                    return Ok(())
+                }
                 let parent = Path::new(file_name).parent();
                 if let Some(parent_path) = parent {
                     create_dir_all(parent_path)?;
                 }
                 let mut file = File::create(file_name)?;
                 file.write_all(file_body.as_bytes())?;
+                println!("{} {} (file_exists)", Paint::green("Generated:"), file_name);
             }
             _ => {}
         }

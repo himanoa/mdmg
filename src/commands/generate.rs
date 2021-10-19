@@ -2,7 +2,7 @@ use crate::template_repository::{FSTemplateRepository, TemplateRepository};
 use crate::template::{render, MdmgCtx};
 use crate::markdown::parse;
 use crate::Result;
-use crate::scaffold_executor::{DryRunScaffoldExecutor, ScaffoldExecutor};
+use crate::scaffold_executor::{DryRunScaffoldExecutor, FSScaffoldExecutor, ScaffoldExecutor};
 
 use std::env::current_dir;
 use std::sync::Arc;
@@ -27,16 +27,19 @@ impl Dependencies for GenerateCommandImpl {
 }
 
 pub trait GenerateCommand {
-    fn run(&self, plan_name: String, component_name: String) -> Result<()>; 
+    fn run(&self, plan_name: String, component_name: String, dry_run: bool) -> Result<()>; 
 }
 
 impl GenerateCommand for GenerateCommandImpl {
-    fn run(&self, plan_name: String, component_name: String) -> Result<()> {
+    fn run(&self, plan_name: String, component_name: String, dry_run: bool) -> Result<()> {
         let template = self.template_repository().resolve(plan_name)?;
         let render_ctx = MdmgCtx::new(component_name);
         if let Ok(scaffolds) = parse(render(template, &render_ctx)?) {
             for scaffold in scaffolds.iter() {
-                DryRunScaffoldExecutor::new().execute(scaffold)?;
+                match dry_run {
+                    true => DryRunScaffoldExecutor::new().execute(scaffold)?,
+                    false => FSScaffoldExecutor::new().execute(scaffold)?
+                };
             }
         };
         Ok(())
