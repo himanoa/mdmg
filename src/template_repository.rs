@@ -37,9 +37,9 @@ impl TemplateRepository for FSTemplateRepository {
                 let filename_result = entry.file_name().into_string();
                 filename_result
                     .map(|filename| {
-                        return FileName::new(filename);
+                        FileName::new(filename)
                     })
-                    .map_err(|os_string| MdmbError::FileNameConvertError(os_string))
+                    .map_err(MdmbError::FileNameConvertError)
             })
             .collect::<Result<Vec<_>>>();
         file_vec_result.map(|files| {
@@ -52,7 +52,7 @@ impl TemplateRepository for FSTemplateRepository {
         let template_name = template_name.into();
         let templates_path = PathBuf::from(&self.path).join(template_name.clone());
         let body = read_to_string(templates_path)
-            .map_err(|_| MdmbError::TemplateIsNotFound(template_name.into()))?;
+            .map_err(|_| MdmbError::TemplateIsNotFound(template_name))?;
         Ok(Template::new(body))
     }
 }
@@ -60,7 +60,7 @@ impl TemplateRepository for FSTemplateRepository {
 #[cfg(test)]
 mod tests {
     use super::{FSTemplateRepository, FileName, TemplateRepository};
-    use crate::error::MdmbError;
+    
     use crate::template::Template;
 
     #[test]
