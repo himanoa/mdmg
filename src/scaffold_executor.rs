@@ -58,7 +58,7 @@ impl ScaffoldExecutor for FSScaffoldExecutor {
                 }
                 let mut file = File::create(file_name)?;
                 file.write_all(file_body.as_bytes())?;
-                println!("{} {} (file_exists)", Paint::green("Generated:"), file_name);
+                println!("{} {}", Paint::green("Generated:"), file_name);
             }
             _ => {}
         }
