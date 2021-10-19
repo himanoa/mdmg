@@ -3,7 +3,7 @@ use crate::template::Template;
 use crate::Result;
 
 use std::fs::{read_dir, read_to_string};
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 #[derive(Debug, Eq, PartialEq, Clone, PartialOrd, Ord)]
 pub struct FileName(pub String);
@@ -36,7 +36,13 @@ impl TemplateRepository for FSTemplateRepository {
             .map(|entry| {
                 let filename_result = entry.file_name().into_string();
                 filename_result
-                    .map(|filename| FileName::new(filename))
+                    .map(|filename|{
+                        let path = Path::new(&filename);
+                        match path.file_stem() {
+                            Some(name) => FileName::new(name.to_string_lossy()),
+                            None => FileName::new(filename)
+                        }
+                    })
                     .map_err(MdmgError::FileNameConvertError)
             })
             .collect::<Result<Vec<_>>>();
@@ -47,7 +53,8 @@ impl TemplateRepository for FSTemplateRepository {
         })
     }
     fn resolve(&self, template_name: String) -> Result<Template> {
-        let templates_path = PathBuf::from(&self.path).join(template_name.clone());
+        let templates_path = PathBuf::from(&self.path).join(format!("{}.md", template_name.clone()));
+        dbg!("{:?}", &templates_path);
         let body = read_to_string(templates_path)
             .map_err(|_| MdmgError::TemplateIsNotFound(template_name))?;
         Ok(Template::new(body))
@@ -88,8 +95,8 @@ mod tests {
     pub fn test_FSTemplateRepository_resolve_return_to_Template() {
         let repository = FSTemplateRepository::new("./support/fs_template_repository_resolve_test");
         let template = repository
-            .resolve("foobar.txt".to_string())
+            .resolve("foobar".to_string())
             .expect("template foobar is not found");
-        assert_eq!(template, Template::new("testing"));
+        assert_eq!(template, Template::new("testing\n"));
     }
 }
