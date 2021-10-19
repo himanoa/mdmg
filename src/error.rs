@@ -1,7 +1,7 @@
 use thiserror::Error;
 
 #[derive(Error, Debug)]
-pub enum MdmbError {
+pub enum MdmgError {
     #[error("ApplicationError")]
     ApplicationError,
     #[error("this template is invalid syntax")]

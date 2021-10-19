@@ -6,10 +6,10 @@ mod scaffold;
 mod template;
 mod template_repository;
 
-use crate::error::MdmbError;
+use crate::error::MdmgError;
 use crate::opts::parse_cli_args;
 
-pub type Result<T> = anyhow::Result<T, MdmbError>;
+pub type Result<T> = anyhow::Result<T, MdmgError>;
 
 pub fn run() -> Result<()> {
     parse_cli_args();

@@ -1,4 +1,4 @@
-use crate::error::MdmbError;
+use crate::error::MdmgError;
 use crate::output::Output;
 use crate::Result;
 
@@ -22,7 +22,7 @@ impl Scaffold {
         {
             output.create_file(file_name.as_str(), file_body.as_str())
         } else if let Scaffold::Pending { file_name } = self {
-            Err(MdmbError::ReadPendingScaffoldError {
+            Err(MdmgError::ReadPendingScaffoldError {
                 file_name: file_name.clone(),
             })
         } else {
@@ -34,7 +34,7 @@ impl Scaffold {
 #[cfg(test)]
 mod tests {
     use super::{Output, Result, Scaffold};
-    use crate::error::MdmbError;
+    use crate::error::MdmgError;
 
     #[test]
     fn it_called_create_file() {
@@ -42,7 +42,7 @@ mod tests {
         struct DummyOutput {}
         impl Output for DummyOutput {
             fn create_file(&self, _file_name: &str, _output: &str) -> Result<()> {
-                Err(MdmbError::ApplicationError)
+                Err(MdmgError::ApplicationError)
             }
         }
 

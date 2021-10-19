@@ -1,4 +1,4 @@
-use crate::error::MdmbError;
+use crate::error::MdmgError;
 use crate::Result;
 use handlebars::{Context, Handlebars, Helper, JsonRender, Output, RenderContext, RenderError};
 use inflector::Inflector;
@@ -110,7 +110,7 @@ pub fn render(template: Template, ctx: &MdmgCtx) -> Result<String> {
 
     handlebars
         .render_template(template.body.as_str(), ctx)
-        .map_err(|e| MdmbError::TempalteRenderError { reason: e.desc })
+        .map_err(|e| MdmgError::TempalteRenderError { reason: e.desc })
 }
 
 #[cfg(test)]

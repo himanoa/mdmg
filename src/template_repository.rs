@@ -1,4 +1,4 @@
-use crate::error::MdmbError;
+use crate::error::MdmgError;
 use crate::template::Template;
 use crate::Result;
 
@@ -39,7 +39,7 @@ impl TemplateRepository for FSTemplateRepository {
                     .map(|filename| {
                         FileName::new(filename)
                     })
-                    .map_err(MdmbError::FileNameConvertError)
+                    .map_err(MdmgError::FileNameConvertError)
             })
             .collect::<Result<Vec<_>>>();
         file_vec_result.map(|files| {
@@ -52,7 +52,7 @@ impl TemplateRepository for FSTemplateRepository {
         let template_name = template_name.into();
         let templates_path = PathBuf::from(&self.path).join(template_name.clone());
         let body = read_to_string(templates_path)
-            .map_err(|_| MdmbError::TemplateIsNotFound(template_name))?;
+            .map_err(|_| MdmgError::TemplateIsNotFound(template_name))?;
         Ok(Template::new(body))
     }
 }
