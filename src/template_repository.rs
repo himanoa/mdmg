@@ -60,8 +60,8 @@ impl TemplateRepository for FSTemplateRepository {
 // #[cfg(feature = "integration_test")]
 mod tests {
     use super::{FSTemplateRepository, FileName, TemplateRepository};
-    use crate::template::Template;
     use crate::error::MdmbError;
+    use crate::template::Template;
 
     #[test]
     pub fn test_FSTemplateRepository_list_return_to_files() {
@@ -87,7 +87,9 @@ mod tests {
     #[test]
     pub fn test_FSTemplateRepository_resolve_return_to_Template() {
         let repository = FSTemplateRepository::new("./support/fs_template_repository_resolve_test");
-        let template = repository.resolve("foobar.txt").expect("template foobar is not found");
+        let template = repository
+            .resolve("foobar.txt")
+            .expect("template foobar is not found");
         assert_eq!(template, Template::new("testing"));
     }
 }
