@@ -11,8 +11,8 @@ pub enum Mdmg {
         component_name: String,
 
         #[structopt(short = "d", long = "dry-run")]
-        dry_run: bool
-    }
+        dry_run: bool,
+    },
 }
 
 pub fn parse_cli_args() -> Mdmg {

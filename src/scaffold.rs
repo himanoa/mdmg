@@ -8,4 +8,3 @@ pub enum Scaffold {
         file_name: String,
     },
 }
-

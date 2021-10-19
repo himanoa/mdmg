@@ -1,8 +1,8 @@
-use crate::template_repository::{FSTemplateRepository, TemplateRepository};
-use crate::template::{render, MdmgCtx};
 use crate::markdown::parse;
-use crate::Result;
 use crate::scaffold_executor::{DryRunScaffoldExecutor, FSScaffoldExecutor, ScaffoldExecutor};
+use crate::template::{render, MdmgCtx};
+use crate::template_repository::{FSTemplateRepository, TemplateRepository};
+use crate::Result;
 
 use std::env::current_dir;
 use std::sync::Arc;
@@ -10,7 +10,7 @@ use std::sync::Arc;
 pub struct GenerateCommandImpl;
 
 impl GenerateCommandImpl {
-    pub fn new()->Self {
+    pub fn new() -> Self {
         GenerateCommandImpl
     }
 }
@@ -27,7 +27,7 @@ impl Dependencies for GenerateCommandImpl {
 }
 
 pub trait GenerateCommand {
-    fn run(&self, plan_name: String, component_name: String, dry_run: bool) -> Result<()>; 
+    fn run(&self, plan_name: String, component_name: String, dry_run: bool) -> Result<()>;
 }
 
 impl GenerateCommand for GenerateCommandImpl {
@@ -38,7 +38,7 @@ impl GenerateCommand for GenerateCommandImpl {
             for scaffold in scaffolds.iter() {
                 match dry_run {
                     true => DryRunScaffoldExecutor::new().execute(scaffold)?,
-                    false => FSScaffoldExecutor::new().execute(scaffold)?
+                    false => FSScaffoldExecutor::new().execute(scaffold)?,
                 };
             }
         };

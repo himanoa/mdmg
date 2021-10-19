@@ -36,9 +36,7 @@ impl TemplateRepository for FSTemplateRepository {
             .map(|entry| {
                 let filename_result = entry.file_name().into_string();
                 filename_result
-                    .map(|filename| {
-                        FileName::new(filename)
-                    })
+                    .map(|filename| FileName::new(filename))
                     .map_err(MdmgError::FileNameConvertError)
             })
             .collect::<Result<Vec<_>>>();
@@ -59,7 +57,7 @@ impl TemplateRepository for FSTemplateRepository {
 #[cfg(test)]
 mod tests {
     use super::{FSTemplateRepository, FileName, TemplateRepository};
-    
+
     use crate::template::Template;
 
     #[test]

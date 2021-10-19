@@ -26,7 +26,7 @@ pub fn parse<T: Into<String>>(markdown: T) -> Result<Vec<Scaffold>> {
 
     let scaffolds = iter_nodes(doc, &mut scaffolds, &|node, scaffolds| {
         if let NodeValue::Text(txt_vec) = node.data.clone().into_inner().value {
-            if let Some(parent_node) = node.parent(){
+            if let Some(parent_node) = node.parent() {
                 if let NodeValue::Heading(heading) = parent_node.data.clone().into_inner().value {
                     if heading.level != 2 {
                         return scaffolds;
