@@ -12,6 +12,8 @@ pub enum MdmbError {
     IoError(#[from] std::io::Error),
     #[error("file name convert error")]
     FileNameConvertError(std::ffi::OsString),
+    #[error("template({0}) is not found")]
+    TemplateIsNotFound(String),
     #[error("unknown error")]
-    Unknown(#[from] anyhow::Error)
+    Unknown(#[from] anyhow::Error),
 }

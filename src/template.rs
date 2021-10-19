@@ -9,6 +9,17 @@ pub struct MdmgCtx {
     pub identify: String,
 }
 
+#[derive(Debug, Serialize, Default, PartialEq)]
+pub struct Template {
+    body: String,
+}
+
+impl Template {
+    pub fn new<T: Into<String>>(body: T) -> Self {
+        Template { body: body.into() }
+    }
+}
+
 impl MdmgCtx {
     fn new(identify: &str) -> Self {
         Self {
@@ -89,7 +100,7 @@ fn kebab_case_helper(
     Ok(())
 }
 
-pub fn render(template_str: &str, ctx: &MdmgCtx) -> Result<String> {
+pub fn render(template: Template, ctx: &MdmgCtx) -> Result<String> {
     let mut handlebars = Handlebars::new();
 
     handlebars.register_helper("pascal_case", Box::new(pascal_case_helper));
@@ -98,7 +109,7 @@ pub fn render(template_str: &str, ctx: &MdmgCtx) -> Result<String> {
     handlebars.register_helper("snake_case", Box::new(snake_case_helper));
 
     handlebars
-        .render_template(template_str, ctx)
+        .render_template(template.body.as_str(), ctx)
         .map_err(|e| MdmbError::TempalteRenderError { reason: e.desc })
 }
 
@@ -109,13 +120,16 @@ mod tests {
 
     #[test]
     fn render_returning_the_piyopoyo() {
-        assert_eq!(render("PIYOPIYP", &Default::default()).unwrap(), "PIYOPIYP")
+        assert_eq!(
+            render(Template::new("PIYOPIYP"), &Default::default()).unwrap(),
+            "PIYOPIYP"
+        )
     }
 
     #[test]
     fn render_returning_the_himanoa() {
         assert_eq!(
-            render("{{identify}}", &MdmgCtx::new("himanoa")).unwrap(),
+            render(Template::new("{{identify}}"), &MdmgCtx::new("himanoa")).unwrap(),
             "himanoa"
         )
     }
@@ -123,7 +137,7 @@ mod tests {
     #[test]
     fn render_returning_the_variable() {
         assert_eq!(
-            render("{{identify}}", &MdmgCtx::new("himanoa")).unwrap(),
+            render(Template::new("{{identify}}"), &MdmgCtx::new("himanoa")).unwrap(),
             "himanoa"
         )
     }
@@ -132,7 +146,7 @@ mod tests {
     fn render_returning_helper() {
         assert_eq!(
             render(
-                "{{pascal_case identify}} {{camel_case identify}} {{kebab_case identify}} {{ snake_case identify }}", &MdmgCtx::new("exampleAccountRegister")
+                Template::new("{{pascal_case identify}} {{camel_case identify}} {{kebab_case identify}} {{ snake_case identify }}"), &MdmgCtx::new("exampleAccountRegister")
             )
             .unwrap(),
             "ExampleAccountRegister exampleAccountRegister example-account-register example_account_register"
