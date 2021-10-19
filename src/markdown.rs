@@ -25,19 +25,20 @@ pub fn parse<T: Into<String>>(markdown: T) -> Result<Vec<Scaffold>> {
     }
 
     let scaffolds = iter_nodes(doc, &mut scaffolds, &|node, scaffolds| {
-        let ast = node.data.clone().into_inner().value;
-        match ast {
-            NodeValue::Heading(c) if c.level == 2 => {}
-            _ => {}
-        }
-
         if let NodeValue::Text(txt_vec) = node.data.clone().into_inner().value {
-            if txt_vec.is_empty() {
-                return scaffolds;
-            }
-            let title_txt = String::from_utf8(txt_vec);
-            if let Ok(file_name) = title_txt {
-                scaffolds.push(Scaffold::Pending { file_name })
+            if let Some(parent_node) = node.parent(){
+                if let NodeValue::Heading(heading) = parent_node.data.clone().into_inner().value {
+                    if heading.level != 2 {
+                        return scaffolds;
+                    }
+                    if txt_vec.is_empty() {
+                        return scaffolds;
+                    }
+                    let title_txt = String::from_utf8(txt_vec);
+                    if let Ok(file_name) = title_txt {
+                        scaffolds.push(Scaffold::Pending { file_name })
+                    }
+                }
             }
         }
 

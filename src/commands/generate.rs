@@ -22,7 +22,7 @@ trait Dependencies {
 impl Dependencies for GenerateCommandImpl {
     fn template_repository(&self) -> Arc<dyn TemplateRepository> {
         let current_dir = current_dir().expect("failed fetch current dir");
-        Arc::new(FSTemplateRepository::new(current_dir))
+        Arc::new(FSTemplateRepository::new(current_dir.join(".mdmg")))
     }
 }
 
