@@ -57,13 +57,14 @@ impl TemplateRepository for FSTemplateRepository {
     }
 }
 
-// #[cfg(feature = "integration_test")]
+#[cfg(test)]
 mod tests {
     use super::{FSTemplateRepository, FileName, TemplateRepository};
     use crate::error::MdmbError;
     use crate::template::Template;
 
     #[test]
+    #[cfg_attr(not(feature = "fs-test"), ignore)]
     pub fn test_FSTemplateRepository_list_return_to_files() {
         let repository = FSTemplateRepository::new("./support/fs_template_repository_list_test");
         let result = repository.list().expect("result is error");
@@ -78,6 +79,7 @@ mod tests {
     }
 
     #[test]
+    #[cfg_attr(not(feature = "fs-test"), ignore)]
     pub fn test_FSTemplateRepository_resolve_return_to_TemplateIsNotFound() {
         let repository = FSTemplateRepository::new("./support/fs_template_repository_resolve_test");
         let err = repository.resolve("not_found").is_err();
@@ -85,6 +87,7 @@ mod tests {
     }
 
     #[test]
+    #[cfg_attr(not(feature = "fs-test"), ignore)]
     pub fn test_FSTemplateRepository_resolve_return_to_Template() {
         let repository = FSTemplateRepository::new("./support/fs_template_repository_resolve_test");
         let template = repository
