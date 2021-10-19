@@ -3,16 +3,19 @@ use structopt::StructOpt;
 #[derive(StructOpt)]
 #[structopt(name = "mdmg", about = r#"A scaffold prototype code tool"#)]
 pub enum Mdmg {
+    #[structopt(about = "Build a scaffold using the template ")]
     Generate {
         #[structopt()]
-        plan_name: String,
+        template_name: String,
 
         #[structopt()]
-        component_name: String,
+        identify: String,
 
         #[structopt(short = "d", long = "dry-run")]
         dry_run: bool,
     },
+    #[structopt(about = "Show available template lists")]
+    List {},
 }
 
 pub fn parse_cli_args() -> Mdmg {
