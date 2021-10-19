@@ -16,7 +16,7 @@ impl FileName {
 
 pub trait TemplateRepository {
     fn list(&self) -> Result<Vec<FileName>>;
-    fn resolve<T: Into<String>>(&self, template_name: T) -> Result<Template>;
+    fn resolve(&self, template_name: String) -> Result<Template>;
 }
 
 pub struct FSTemplateRepository {
@@ -48,8 +48,7 @@ impl TemplateRepository for FSTemplateRepository {
             sorted_files
         })
     }
-    fn resolve<T: Into<String>>(&self, template_name: T) -> Result<Template> {
-        let template_name = template_name.into();
+    fn resolve(&self, template_name: String) -> Result<Template> {
         let templates_path = PathBuf::from(&self.path).join(template_name.clone());
         let body = read_to_string(templates_path)
             .map_err(|_| MdmgError::TemplateIsNotFound(template_name))?;
@@ -82,7 +81,7 @@ mod tests {
     #[cfg_attr(not(feature = "fs-test"), ignore)]
     pub fn test_FSTemplateRepository_resolve_return_to_TemplateIsNotFound() {
         let repository = FSTemplateRepository::new("./support/fs_template_repository_resolve_test");
-        let err = repository.resolve("not_found").is_err();
+        let err = repository.resolve("not_found".to_string()).is_err();
         assert_eq!(err, true)
     }
 
@@ -91,7 +90,7 @@ mod tests {
     pub fn test_FSTemplateRepository_resolve_return_to_Template() {
         let repository = FSTemplateRepository::new("./support/fs_template_repository_resolve_test");
         let template = repository
-            .resolve("foobar.txt")
+            .resolve("foobar.txt".to_string())
             .expect("template foobar is not found");
         assert_eq!(template, Template::new("testing"));
     }

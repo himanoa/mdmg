@@ -21,9 +21,9 @@ impl Template {
 }
 
 impl MdmgCtx {
-    fn new(identify: &str) -> Self {
+    pub fn new<T: Into<String>>(identify: T) -> Self {
         Self {
-            identify: identify.to_string(),
+            identify: identify.into(),
         }
     }
 }

@@ -3,9 +3,9 @@ use crate::Result;
 use comrak::nodes::{AstNode, NodeValue};
 use comrak::{parse_document, Arena, ComrakOptions};
 
-pub fn parse(markdown: &str) -> Result<Vec<Scaffold>> {
+pub fn parse<T: Into<String>>(markdown: T) -> Result<Vec<Scaffold>> {
     let arena = Arena::new();
-    let doc = parse_document(&arena, markdown, &ComrakOptions::default());
+    let doc = parse_document(&arena, markdown.into().as_ref(), &ComrakOptions::default());
 
     let mut scaffolds: Vec<Scaffold> = vec![];
 
