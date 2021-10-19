@@ -1,7 +1,7 @@
 use crate::Result;
 use std::env::current_dir;
 use std::fs::create_dir;
-use std::process::{exit};
+use std::process::exit;
 use yansi::Paint;
 
 pub trait SetupCommand {

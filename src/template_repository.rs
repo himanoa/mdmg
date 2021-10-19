@@ -36,11 +36,11 @@ impl TemplateRepository for FSTemplateRepository {
             .map(|entry| {
                 let filename_result = entry.file_name().into_string();
                 filename_result
-                    .map(|filename|{
+                    .map(|filename| {
                         let path = Path::new(&filename);
                         match path.file_stem() {
                             Some(name) => FileName::new(name.to_string_lossy()),
-                            None => FileName::new(filename)
+                            None => FileName::new(filename),
                         }
                     })
                     .map_err(MdmgError::FileNameConvertError)
@@ -53,7 +53,8 @@ impl TemplateRepository for FSTemplateRepository {
         })
     }
     fn resolve(&self, template_name: String) -> Result<Template> {
-        let templates_path = PathBuf::from(&self.path).join(format!("{}.md", template_name.clone()));
+        let templates_path =
+            PathBuf::from(&self.path).join(format!("{}.md", template_name.clone()));
         dbg!("{:?}", &templates_path);
         let body = read_to_string(templates_path)
             .map_err(|_| MdmgError::TemplateIsNotFound(template_name))?;
