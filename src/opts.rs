@@ -10,7 +10,7 @@ pub enum Mdmg {
         #[structopt()]
         component_name: String,
 
-        #[structopt(short = "d", long = "dru-run")]
+        #[structopt(short = "d", long = "dry-run")]
         dry_run: bool
     }
 }
