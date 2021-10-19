@@ -16,6 +16,8 @@ pub enum Mdmg {
     },
     #[structopt(about = "Show available template lists")]
     List {},
+    #[structopt(about = "Setup mdmg command environment(Create a .mdmg directory)")]
+    Setup {},
 }
 
 pub fn parse_cli_args() -> Mdmg {
