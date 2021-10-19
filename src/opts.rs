@@ -1,7 +1,7 @@
-use structopt::StructOpt;
+use structopt::{StructOpt, clap};
 
 #[derive(StructOpt)]
-#[structopt(name = "mdmg", about = r#"A scaffold prototype code tool"#)]
+#[structopt(name = clap::crate_name!(), about = clap::crate_description!(), author = clap::crate_authors!(), version = clap::crate_version!(), setting(clap::AppSettings::ColoredHelp))]
 pub enum Mdmg {
     #[structopt(about = "Build a scaffold using the template ")]
     Generate {

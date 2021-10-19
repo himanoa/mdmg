@@ -1,5 +1,7 @@
 [package]
 name = "mdmg"
+authors = ['himanoa <matsunoappy@gmail.com>']
+description = "A scaffold prototype code tool"
 version = "0.1.0"
 edition = "2018"
 
