@@ -137,7 +137,7 @@ pub fn render(template: Template, ctx: &MdmgCtx) -> Result<String> {
 mod tests {
     use super::*;
     use std::default::Default;
-    use std::env::{var, set_var, remove_var};
+    use std::env::{remove_var, set_var, var};
 
     #[test]
     fn render_returning_the_piyopoyo() {
@@ -166,23 +166,23 @@ mod tests {
     #[test]
     fn render_returning_the_FOO() {
         set_var("MDMG_TEST_VALUE1", "FOO");
-        let actual = render(Template::new("{{ env \"MDMG_TEST_VALUE1\"}}"), &MdmgCtx::new("himanoa"));
+        let actual = render(
+            Template::new("{{ env \"MDMG_TEST_VALUE1\"}}"),
+            &MdmgCtx::new("himanoa"),
+        );
         remove_var("MDMG_TEST_VALUE1");
-        assert_eq!(
-            actual.unwrap(),
-            "FOO"
-        )
+        assert_eq!(actual.unwrap(), "FOO")
     }
 
     #[test]
     fn render_returning_the_foo_adapter() {
         set_var("MDMG_TEST_VALUE2", "FooAdapter");
-        let actual = render(Template::new("{{ snake_case (env \"MDMG_TEST_VALUE2\")}}"), &MdmgCtx::new("himanoa"));
+        let actual = render(
+            Template::new("{{ snake_case (env \"MDMG_TEST_VALUE2\")}}"),
+            &MdmgCtx::new("himanoa"),
+        );
         remove_var("MDMG_TEST_VALUE2");
-        assert_eq!(
-            actual.unwrap(),
-            "foo_adapter"
-        )
+        assert_eq!(actual.unwrap(), "foo_adapter")
     }
 
     #[test]
