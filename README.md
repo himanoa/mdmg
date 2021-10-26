@@ -2,6 +2,8 @@
 
 A scaffold prototype code tool.
 
+![mdmg-demo](./assets/demo.gif)
+
 ## Install
 
 ```bash
