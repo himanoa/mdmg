@@ -22,28 +22,30 @@ cargo install mdmg
 1. Current Directory move to your project directory.
 2. Execute `mdmg setup`.
 3. Create a file similar to the following `.mdmg/${plan_name}.md`.
-```markdown
+
+~~~markdown
 ## src/main.rs
 
-```
+```rust
 fn main() -> Result<()> {
     unimplemented!()
 }
 ```
-```
+~~~
+
 4. Execute `mdmg generate ${plan_name} foo`.
 
 ## Mdmg plan file format
 
 Please write in the following format.
 
-```markdown
+~~~markdown
 ## file_name
 
 ```
 file_body
 ```
-```
+~~~
 
 The key points are as follows.
 
@@ -87,6 +89,6 @@ Functions and variables that can be used.
 
 Implementation => https://github.com/himanoa/mdmg/blob/master/src/template.rs
 
-### Contributing
+## Contributing
 
 See https://github.com/himanoa/mdmg/blob/master/CONTRIBUTING.md
