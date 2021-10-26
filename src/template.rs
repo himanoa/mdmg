@@ -3,6 +3,7 @@ use crate::Result;
 use handlebars::{Context, Handlebars, Helper, JsonRender, Output, RenderContext, RenderError};
 use inflector::Inflector;
 use serde::Serialize;
+use std::env::var;
 
 #[derive(Debug, Serialize, Default)]
 pub struct MdmgCtx {
@@ -100,6 +101,24 @@ fn kebab_case_helper(
     Ok(())
 }
 
+fn env_helper(
+    h: &Helper,
+    _: &Handlebars,
+    _: &Context,
+    _: &mut RenderContext,
+    out: &mut dyn Output,
+) -> std::result::Result<(), RenderError> {
+    let target = h
+        .param(0)
+        .ok_or(RenderError::new(
+            "Param 0 is required for kebab_case_decorator.",
+        ))
+        .map(|s| s.value().render())?;
+    let rendered = var(&target).expect(format!("env({}) is not defined.", &target).as_str());
+    out.write(&rendered)?;
+    Ok(())
+}
+
 pub fn render(template: Template, ctx: &MdmgCtx) -> Result<String> {
     let mut handlebars = Handlebars::new();
 
@@ -107,6 +126,7 @@ pub fn render(template: Template, ctx: &MdmgCtx) -> Result<String> {
     handlebars.register_helper("camel_case", Box::new(camel_case_helper));
     handlebars.register_helper("kebab_case", Box::new(kebab_case_helper));
     handlebars.register_helper("snake_case", Box::new(snake_case_helper));
+    handlebars.register_helper("env", Box::new(env_helper));
 
     handlebars
         .render_template(template.body.as_str(), ctx)
@@ -117,6 +137,7 @@ pub fn render(template: Template, ctx: &MdmgCtx) -> Result<String> {
 mod tests {
     use super::*;
     use std::default::Default;
+    use std::env::{var, set_var, remove_var};
 
     #[test]
     fn render_returning_the_piyopoyo() {
@@ -139,6 +160,28 @@ mod tests {
         assert_eq!(
             render(Template::new("{{identify}}"), &MdmgCtx::new("himanoa")).unwrap(),
             "himanoa"
+        )
+    }
+
+    #[test]
+    fn render_returning_the_FOO() {
+        set_var("MDMG_TEST_VALUE1", "FOO");
+        let actual = render(Template::new("{{ env \"MDMG_TEST_VALUE1\"}}"), &MdmgCtx::new("himanoa"));
+        remove_var("MDMG_TEST_VALUE1");
+        assert_eq!(
+            actual.unwrap(),
+            "FOO"
+        )
+    }
+
+    #[test]
+    fn render_returning_the_foo_adapter() {
+        set_var("MDMG_TEST_VALUE2", "FooAdapter");
+        let actual = render(Template::new("{{ snake_case (env \"MDMG_TEST_VALUE2\")}}"), &MdmgCtx::new("himanoa"));
+        remove_var("MDMG_TEST_VALUE2");
+        assert_eq!(
+            actual.unwrap(),
+            "foo_adapter"
         )
     }
 

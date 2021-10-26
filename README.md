@@ -86,6 +86,11 @@ Functions and variables that can be used.
     - identify: FooBarBaz
     - template: `{{snake_case identify}}`
     - output: foo\_bar\_baz
+- `env`:  
+  - Example
+    - environment: FOO=12
+    - template: `{{env "FOO"}}`
+    - output: 12
 
 Implementation => https://github.com/himanoa/mdmg/blob/master/src/template.rs
 
