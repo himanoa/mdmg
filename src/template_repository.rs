@@ -55,10 +55,9 @@ impl TemplateRepository for FSTemplateRepository {
     fn resolve(&self, template_name: String) -> Result<Template> {
         let templates_path =
             PathBuf::from(&self.path).join(format!("{}.md", template_name.clone()));
-        dbg!("{:?}", &templates_path);
         let body = read_to_string(templates_path)
             .map_err(|_| MdmgError::TemplateIsNotFound(template_name))?;
-        Ok(Template::new(body))
+        Ok(Template::new(body.trim()))
     }
 }
 
@@ -98,6 +97,6 @@ mod tests {
         let template = repository
             .resolve("foobar".to_string())
             .expect("template foobar is not found");
-        assert_eq!(template, Template::new("testing\n"));
+        assert_eq!(template, Template::new("testing"));
     }
 }
