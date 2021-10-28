@@ -5,6 +5,21 @@ description = "A scaffold prototype code tool"
 version = "0.1.1"
 edition = "2018"
 license = "MIT"
+readme = "README.md"
+
+[package.metadata.deb]
+maintainer = "himanoa <matsunoappy@gmail.com>"
+copyright = "2021, himanoa <matsunoappy@gmail.com>"
+license-file = ["LICENSE.md", "4"]
+extended-description = """\
+A markdown driven scaffolding tool. """
+depends = "$auto"
+section = "utility"
+priority = "optional"
+assets = [
+    ["target/release/mdmg", "usr/bin/", "755"],
+    ["README.md", "usr/share/doc/mdmg/README", "644"],
+]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
