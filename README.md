@@ -10,6 +10,21 @@ A scaffold prototype code tool.
 cargo install mdmg
 ```
 
+### Debian
+
+1. Dowload a latest deb package from https://github.com/himanoa/mdmg/releases
+
+```
+dpkg -i mdmg_[version]_amd64.deb
+```
+
+### macOS
+
+Use homebrew
+
+```
+brew install -s himanoa/tap/mdmg
+```
 ## Features 
 
 - Markdown driven
