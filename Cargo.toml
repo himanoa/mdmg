@@ -2,7 +2,7 @@
 name = "mdmg"
 authors = ['himanoa <matsunoappy@gmail.com>']
 description = "A scaffold prototype code tool"
-version = "0.1.2-alpha.1"
+version = "0.1.2-alpha.2"
 edition = "2018"
 license = "MIT"
 readme = "README.md"

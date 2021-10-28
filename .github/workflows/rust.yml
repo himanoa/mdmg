@@ -156,6 +156,6 @@ jobs:
     - name: Upload deb artifact
       uses: softprops/action-gh-release@v1
       with:
-        files: 'target/x86_64-unknown-linux-musl/debian/'
+        files: 'target/x86_64-unknown-linux-musl/debian/*'
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
