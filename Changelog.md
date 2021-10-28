@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.1.2-alpha.2
+
+- Fix a upload target
+
 ## v0.1.2-alpha.1
 
 - Add deb package to release page
