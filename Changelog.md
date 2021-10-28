@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.1.2-alpha.1
+
+- Add deb package to release page
+
 ## v0.1.1
 
 ### Added
