@@ -31,7 +31,11 @@ impl DryRunScaffoldExecutor {
 
 impl ScaffoldExecutor for DryRunScaffoldExecutor {
     fn execute(self, scaffold: &Scaffold) -> Result<()> {
-        if let Scaffold::Complete { file_name, file_body } = scaffold {
+        if let Scaffold::Complete {
+            file_name,
+            file_body,
+        } = scaffold
+        {
             println!("=== filename: {} ===", file_name);
             println!("{}", file_body);
             println!("====================");
@@ -42,13 +46,17 @@ impl ScaffoldExecutor for DryRunScaffoldExecutor {
 
 impl ScaffoldExecutor for FSScaffoldExecutor {
     fn execute(self, scaffold: &Scaffold) -> Result<()> {
-        if let Scaffold::Complete { file_name, file_body } = scaffold {
+        if let Scaffold::Complete {
+            file_name,
+            file_body,
+        } = scaffold
+        {
             if Path::new(file_name).exists() {
                 println!(
                     "{} {} (file_exists)",
                     Paint::yellow("Skip generate:"),
                     file_name
-                    );
+                );
                 return Ok(());
             }
             let parent = Path::new(file_name).parent();

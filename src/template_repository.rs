@@ -53,8 +53,7 @@ impl TemplateRepository for FSTemplateRepository {
         })
     }
     fn resolve(&self, template_name: String) -> Result<Template> {
-        let templates_path =
-            PathBuf::from(&self.path).join(format!("{}.md", template_name));
+        let templates_path = PathBuf::from(&self.path).join(format!("{}.md", template_name));
         let body = read_to_string(templates_path)
             .map_err(|_| MdmgError::TemplateIsNotFound(template_name))?;
         Ok(Template::new(body.trim()))

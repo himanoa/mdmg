@@ -38,9 +38,7 @@ fn pascal_case_helper(
 ) -> std::result::Result<(), RenderError> {
     let target = h
         .param(0)
-        .ok_or_else(|| RenderError::new(
-            "Param 0 is required for pascal_case_decorator.",
-        ))
+        .ok_or_else(|| RenderError::new("Param 0 is required for pascal_case_decorator."))
         .map(|s| s.value().render())?;
     let rendered = target.to_pascal_case();
     out.write(&rendered)?;
@@ -56,9 +54,7 @@ fn camel_case_helper(
 ) -> std::result::Result<(), RenderError> {
     let target = h
         .param(0)
-        .ok_or_else(|| RenderError::new(
-            "Param 0 is required for camel_case_decorator.",
-        ))
+        .ok_or_else(|| RenderError::new("Param 0 is required for camel_case_decorator."))
         .map(|s| s.value().render())?;
     let rendered = target.to_camel_case();
     out.write(&rendered)?;
@@ -74,9 +70,7 @@ fn snake_case_helper(
 ) -> std::result::Result<(), RenderError> {
     let target = h
         .param(0)
-        .ok_or_else(|| RenderError::new(
-            "Param 0 is required for snake_case_decorator.",
-        ))
+        .ok_or_else(|| RenderError::new("Param 0 is required for snake_case_decorator."))
         .map(|s| s.value().render())?;
     let rendered = target.to_snake_case();
     out.write(&rendered)?;
@@ -92,9 +86,7 @@ fn kebab_case_helper(
 ) -> std::result::Result<(), RenderError> {
     let target = h
         .param(0)
-        .ok_or_else(|| RenderError::new(
-            "Param 0 is required for kebab_case_decorator.",
-        ))
+        .ok_or_else(|| RenderError::new("Param 0 is required for kebab_case_decorator."))
         .map(|s| s.value().render())?;
     let rendered = target.to_kebab_case();
     out.write(&rendered)?;
@@ -110,9 +102,7 @@ fn env_helper(
 ) -> std::result::Result<(), RenderError> {
     let target = h
         .param(0)
-        .ok_or_else(|| RenderError::new(
-            "Param 0 is required for kebab_case_decorator.",
-        ))
+        .ok_or_else(|| RenderError::new("Param 0 is required for kebab_case_decorator."))
         .map(|s| s.value().render())?;
     let rendered = var(&target).unwrap_or_else(|_| panic!("env({}) is not defined.", &target));
     out.write(&rendered)?;
