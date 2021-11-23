@@ -164,7 +164,7 @@ mod tests {
     }
 
     #[test]
-    fn render_returning_the_FOO() {
+    fn render_returning_the_foo() {
         set_var("MDMG_TEST_VALUE1", "FOO");
         let actual = render(
             Template::new("{{ env \"MDMG_TEST_VALUE1\"}}"),

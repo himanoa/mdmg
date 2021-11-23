@@ -71,7 +71,7 @@ mod tests {
 
     #[test]
     #[cfg_attr(not(feature = "fs-test"), ignore)]
-    pub fn test_FSScaffoldExecutor_execute_is_created_files() {
+    pub fn fsscaffold_executor_execute_is_created_files() {
         let executor = FSScaffoldExecutor {};
         let path = "support/fs_scaffold_executor_execute/foobar.md".to_string();
         let scaffold = Scaffold::Complete {

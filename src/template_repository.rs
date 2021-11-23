@@ -69,7 +69,7 @@ mod tests {
 
     #[test]
     #[cfg_attr(not(feature = "fs-test"), ignore)]
-    pub fn test_FSTemplateRepository_list_return_to_files() {
+    pub fn test_fstemplate_repository_list_return_to_files() {
         let repository = FSTemplateRepository::new("./support/fs_template_repository_list_test");
         let result = repository.list().expect("result is error");
         assert_eq!(
@@ -84,15 +84,15 @@ mod tests {
 
     #[test]
     #[cfg_attr(not(feature = "fs-test"), ignore)]
-    pub fn test_FSTemplateRepository_resolve_return_to_TemplateIsNotFound() {
+    pub fn test_fstemplate_repository_resolve_return_to_template_not_found() {
         let repository = FSTemplateRepository::new("./support/fs_template_repository_resolve_test");
         let err = repository.resolve("not_found".to_string()).is_err();
-        assert_eq!(err, true)
+        assert!(err)
     }
 
     #[test]
     #[cfg_attr(not(feature = "fs-test"), ignore)]
-    pub fn test_FSTemplateRepository_resolve_return_to_Template() {
+    pub fn test_fstemplate_repository_resolve_return_to_template() {
         let repository = FSTemplateRepository::new("./support/fs_template_repository_resolve_test");
         let template = repository
             .resolve("foobar".to_string())
