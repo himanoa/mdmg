@@ -137,7 +137,7 @@ pub fn render(template: Template, ctx: &MdmgCtx) -> Result<String> {
 mod tests {
     use super::*;
     use std::default::Default;
-    use std::env::{remove_var, set_var, var};
+    use std::env::{remove_var, set_var};
 
     #[test]
     fn render_returning_the_piyopoyo() {
