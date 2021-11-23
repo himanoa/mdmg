@@ -31,45 +31,33 @@ impl DryRunScaffoldExecutor {
 
 impl ScaffoldExecutor for DryRunScaffoldExecutor {
     fn execute(self, scaffold: &Scaffold) -> Result<()> {
-        match scaffold {
-            Scaffold::Complete {
-                file_name,
-                file_body,
-            } => {
-                println!("=== filename: {} ===", file_name);
-                println!("{}", file_body);
-                println!("====================");
-            }
-            _ => {}
-        };
+        if let Scaffold::Complete { file_name, file_body } = scaffold {
+            println!("=== filename: {} ===", file_name);
+            println!("{}", file_body);
+            println!("====================");
+        }
         Ok(())
     }
 }
 
 impl ScaffoldExecutor for FSScaffoldExecutor {
     fn execute(self, scaffold: &Scaffold) -> Result<()> {
-        match scaffold {
-            Scaffold::Complete {
-                file_name,
-                file_body,
-            } => {
-                if Path::new(file_name).exists() == true {
-                    println!(
-                        "{} {} (file_exists)",
-                        Paint::yellow("Skip generate:"),
-                        file_name
+        if let Scaffold::Complete { file_name, file_body } = scaffold {
+            if Path::new(file_name).exists() {
+                println!(
+                    "{} {} (file_exists)",
+                    Paint::yellow("Skip generate:"),
+                    file_name
                     );
-                    return Ok(());
-                }
-                let parent = Path::new(file_name).parent();
-                if let Some(parent_path) = parent {
-                    create_dir_all(parent_path)?;
-                }
-                let mut file = File::create(file_name)?;
-                file.write_all(file_body.as_bytes())?;
-                println!("{} {}", Paint::green("Generated:"), file_name);
+                return Ok(());
             }
-            _ => {}
+            let parent = Path::new(file_name).parent();
+            if let Some(parent_path) = parent {
+                create_dir_all(parent_path)?;
+            }
+            let mut file = File::create(file_name)?;
+            file.write_all(file_body.as_bytes())?;
+            println!("{} {}", Paint::green("Generated:"), file_name);
         }
         Ok(())
     }
