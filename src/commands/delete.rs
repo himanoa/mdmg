@@ -1,3 +1,5 @@
+use yansi::Paint;
+
 use crate::Result;
 use crate::MdmgError;
 use crate::scaffold::Scaffold;
@@ -41,9 +43,11 @@ impl DeleteCommand for DeleteCommandImpl {
             for scaffold in scaffolds.into_iter() {
                 if let Scaffold::Complete { file_name, file_body: _ } = scaffold {
                     remove_file(&file_name.clone())?;
+                    println!("{} {}", Paint::green("Delete"), file_name);
                     let parent_path = Path::new(&file_name).parent().ok_or(MdmgError::ParentDirectoryIsNotFound(file_name.clone()))?;
                     if read_dir(&parent_path).iter().len() == 0 {
                         remove_dir(parent_path).map_err(|_| MdmgError::FailedRemoveParentDirectory(parent_path.as_os_str().to_str().unwrap().to_string()))?;
+                        println!("{} {}", Paint::green("Delete empty directory"), file_name);
                     }
                 }
             }
