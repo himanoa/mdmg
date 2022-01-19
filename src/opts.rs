@@ -18,6 +18,14 @@ pub enum Mdmg {
     List {},
     #[structopt(about = "Setup mdmg command environment(Create a .mdmg directory)")]
     Setup {},
+    #[structopt(about = "Delete files Written in template")]
+    Delete {
+        #[structopt()]
+        template_name: String,
+
+        #[structopt()]
+        identify: String,
+    }
 }
 
 pub fn parse_cli_args() -> Mdmg {

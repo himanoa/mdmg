@@ -14,6 +14,10 @@ pub enum MdmgError {
     FileNameConvertError(std::ffi::OsString),
     #[error("template({0}) is not found")]
     TemplateIsNotFound(String),
+    #[error("file path ({0})'s parent path is not found")]
+    ParentDirectoryIsNotFound(String),
+    #[error("failed remove parent directory. path: {0}")]
+    FailedRemoveParentDirectory(String),
     #[error("unknown error")]
     Unknown(#[from] anyhow::Error),
 }
