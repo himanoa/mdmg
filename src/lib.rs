@@ -8,6 +8,7 @@ mod scaffold_executor;
 mod template;
 mod template_repository;
 
+use crate::commands::delete::{DeleteCommand, DeleteCommandImpl};
 use crate::commands::generate::{GenerateCommand, GenerateCommandImpl};
 use crate::commands::list::{ListCommand, ListCommandImpl};
 use crate::commands::setup::{SetupCommand, SetupCommandImpl};
@@ -33,6 +34,13 @@ pub fn run() -> Result<()> {
         Mdmg::Setup {} => {
             let command = SetupCommandImpl::new();
             command.run()?;
+        }
+        Mdmg::Delete {
+            template_name,
+            identify,
+        } => {
+            let command = DeleteCommandImpl::new();
+            command.run(template_name, identify)?;
         }
     };
     Ok(())
