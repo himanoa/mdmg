@@ -50,7 +50,7 @@ impl DeleteCommand for DeleteCommandImpl {
                     println!("{} {}", Paint::green("Delete"), file_name);
                     let parent_path = Path::new(&file_name)
                         .parent()
-                        .ok_or(MdmgError::ParentDirectoryIsNotFound(file_name.clone()))?;
+                        .ok_or_else(|| MdmgError::ParentDirectoryIsNotFound(file_name.clone()))?;
                     if read_dir(&parent_path).iter().len() == 0 {
                         remove_dir(parent_path).map_err(|_| {
                             MdmgError::FailedRemoveParentDirectory(
