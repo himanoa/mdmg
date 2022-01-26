@@ -39,29 +39,31 @@ impl DeleteCommand for DeleteCommandImpl {
     fn run(&self, plan_name: String, component_name: String) -> Result<()> {
         let template = self.template_repository().resolve(plan_name)?;
         let render_ctx = MdmgCtx::new(component_name);
-        if let Ok(scaffolds) = parse(render(template, &render_ctx)?) {
-            for scaffold in scaffolds.into_iter() {
-                if let Scaffold::Complete {
+        let scaffolds = parse(render(template, &render_ctx)?)?;
+        for scaffold in scaffolds.into_iter() {
+            let file_name = match scaffold {
+                Scaffold::Complete {
                     file_name,
                     file_body: _,
-                } = scaffold
-                {
-                    remove_file(&file_name.clone())?;
-                    println!("{} {}", Paint::green("Delete"), file_name);
-                    let parent_path = Path::new(&file_name)
-                        .parent()
-                        .ok_or_else(|| MdmgError::ParentDirectoryIsNotFound(file_name.clone()))?;
-                    if read_dir(&parent_path).iter().len() == 0 {
-                        remove_dir(parent_path).map_err(|_| {
-                            MdmgError::FailedRemoveParentDirectory(
-                                parent_path.as_os_str().to_str().unwrap().to_string(),
-                            )
-                        })?;
-                        println!("{} {}", Paint::green("Delete empty directory"), file_name);
-                    }
+                } => file_name,
+                _ => {
+                    break;
                 }
+            };
+            remove_file(&file_name.clone())?;
+            println!("{} {}", Paint::green("Delete"), file_name);
+            let parent_path = Path::new(&file_name)
+                .parent()
+                .ok_or_else(|| MdmgError::ParentDirectoryIsNotFound(file_name.clone()))?;
+            if read_dir(&parent_path).iter().len() == 0 {
+                remove_dir(parent_path).map_err(|_| {
+                    MdmgError::FailedRemoveParentDirectory(
+                        parent_path.as_os_str().to_str().unwrap().to_string(),
+                    )
+                })?;
+                println!("{} {}", Paint::green("Delete empty directory"), file_name);
             }
-        };
+        }
         Ok(())
     }
 }
