@@ -1,37 +1,44 @@
-use yansi::Paint;
-
 use crate::markdown::parse;
-use crate::scaffold::Scaffold;
 use crate::template::{render, MdmgCtx};
 use crate::template_repository::{FSTemplateRepository, TemplateRepository};
-use crate::MdmgError;
+use crate::delete_executor::{FSDeleteExecutor, DeleteExecutor, FSDeleteExecutorDeps};
 use crate::Result;
 
 use std::env::current_dir;
-use std::fs::{read_dir, remove_dir, remove_file};
-use std::path::Path;
 use std::sync::Arc;
 
 pub trait DeleteCommand {
     fn run(&self, plan_name: String, component_name: String) -> Result<()>;
 }
 
-pub struct DeleteCommandImpl;
+pub struct DeleteCommandImpl {
+    template_repository_ref: Arc<FSTemplateRepository>,
+    delete_executor_ref: Arc<dyn DeleteExecutor>
+}
 
 trait Dependencies {
     fn template_repository(&self) -> Arc<dyn TemplateRepository>;
+    fn delete_executor(&self) -> Arc<dyn DeleteExecutor>;
 }
 
 impl Dependencies for DeleteCommandImpl {
     fn template_repository(&self) -> Arc<dyn TemplateRepository> {
-        let current_dir = current_dir().expect("failed fetch current dir");
-        Arc::new(FSTemplateRepository::new(current_dir.join(".mdmg")))
+        self.template_repository_ref.clone()
+    }
+
+    fn delete_executor(&self) -> Arc<dyn DeleteExecutor> {
+        self.delete_executor_ref.clone()
     }
 }
 
 impl DeleteCommandImpl {
     pub fn new() -> Self {
-        DeleteCommandImpl
+        let current_dir = current_dir().expect("failed fetch current dir");
+        let delete_executor_deps = Arc::new(FSDeleteExecutorDeps::new());
+        DeleteCommandImpl { 
+            template_repository_ref: Arc::new(FSTemplateRepository::new(current_dir.join(".mdmg"))),
+            delete_executor_ref: Arc::new(FSDeleteExecutor::new(delete_executor_deps))
+        }
     }
 }
 
@@ -40,30 +47,14 @@ impl DeleteCommand for DeleteCommandImpl {
         let template = self.template_repository().resolve(plan_name)?;
         let render_ctx = MdmgCtx::new(component_name);
         let scaffolds = parse(render(template, &render_ctx)?)?;
+
         for scaffold in scaffolds.into_iter() {
-            let file_name = match scaffold {
-                Scaffold::Complete {
-                    file_name,
-                    file_body: _,
-                } => file_name,
-                _ => {
-                    break;
-                }
-            };
-            remove_file(&file_name.clone())?;
-            println!("{} {}", Paint::green("Delete"), file_name);
-            let parent_path = Path::new(&file_name)
-                .parent()
-                .ok_or_else(|| MdmgError::ParentDirectoryIsNotFound(file_name.clone()))?;
-            if read_dir(&parent_path).iter().len() == 0 {
-                remove_dir(parent_path).map_err(|_| {
-                    MdmgError::FailedRemoveParentDirectory(
-                        parent_path.as_os_str().to_str().unwrap().to_string(),
-                    )
-                })?;
-                println!("{} {}", Paint::green("Delete empty directory"), file_name);
+            match self.delete_executor().execute(&scaffold) {
+                Ok(_) => {},
+                Err(e) => eprintln!("{}", e.to_string())
             }
         }
+
         Ok(())
     }
 }

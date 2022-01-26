@@ -5,6 +5,7 @@ mod opts;
 mod output;
 mod scaffold;
 mod scaffold_executor;
+mod delete_executor;
 mod template;
 mod template_repository;
 
