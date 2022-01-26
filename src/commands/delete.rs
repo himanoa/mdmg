@@ -1,7 +1,7 @@
+use crate::delete_executor::{DeleteExecutor, FSDeleteExecutor, FSDeleteExecutorDeps};
 use crate::markdown::parse;
 use crate::template::{render, MdmgCtx};
 use crate::template_repository::{FSTemplateRepository, TemplateRepository};
-use crate::delete_executor::{FSDeleteExecutor, DeleteExecutor, FSDeleteExecutorDeps};
 use crate::Result;
 
 use std::env::current_dir;
@@ -13,7 +13,7 @@ pub trait DeleteCommand {
 
 pub struct DeleteCommandImpl {
     template_repository_ref: Arc<dyn TemplateRepository>,
-    delete_executor_ref: Arc<dyn DeleteExecutor>
+    delete_executor_ref: Arc<dyn DeleteExecutor>,
 }
 
 trait Dependencies {
@@ -36,9 +36,9 @@ impl DeleteCommandImpl {
         let current_dir = current_dir().expect("failed fetch current dir");
         let delete_executor_deps = Arc::new(FSDeleteExecutorDeps::new());
 
-        DeleteCommandImpl { 
+        DeleteCommandImpl {
             template_repository_ref: Arc::new(FSTemplateRepository::new(current_dir.join(".mdmg"))),
-            delete_executor_ref: Arc::new(FSDeleteExecutor::new(delete_executor_deps.clone()))
+            delete_executor_ref: Arc::new(FSDeleteExecutor::new(delete_executor_deps)),
         }
     }
 }
@@ -51,8 +51,8 @@ impl DeleteCommand for DeleteCommandImpl {
 
         for scaffold in scaffolds.into_iter() {
             match &self.delete_executor().execute(&scaffold) {
-                Ok(_) => {},
-                Err(e) => eprintln!("{}", e.to_string())
+                Ok(_) => {}
+                Err(e) => eprintln!("{}", e.to_string()),
             }
         }
 
@@ -60,10 +60,12 @@ impl DeleteCommand for DeleteCommandImpl {
     }
 }
 
-
 #[cfg(test)]
-mod tests{
-    use crate::{template_repository::TemplateRepository, commands::delete::DeleteCommand, delete_executor::DeleteExecutor};
+mod tests {
+    use crate::{
+        commands::delete::DeleteCommand, delete_executor::DeleteExecutor,
+        template_repository::TemplateRepository,
+    };
 
     use super::DeleteCommandImpl;
 
@@ -78,12 +80,13 @@ mod tests{
 
         #[derive(Default)]
         struct StubDeleteExecutor {
-            pub deleted_file: RefCell<Vec<String>>
+            pub deleted_file: RefCell<Vec<String>>,
         }
 
         impl TemplateRepository for StubTemplateRepository {
             fn resolve(&self, _template_name: String) -> crate::Result<crate::template::Template> {
-                Ok(crate::template::Template::new(indoc! {"
+                Ok(crate::template::Template::new(
+                    indoc! {"
                     ## foobar/foo/bar01.md
 
                     ```
@@ -95,7 +98,9 @@ mod tests{
                     ```
                     dummy
                     ```
-                "}.to_string()))
+                "}
+                    .to_string(),
+                ))
             }
 
             fn list(&self) -> crate::Result<Vec<crate::template_repository::FileName>> {
@@ -106,8 +111,13 @@ mod tests{
         impl DeleteExecutor for StubDeleteExecutor {
             fn execute(&self, scaffold: &crate::scaffold::Scaffold) -> crate::Result<()> {
                 match scaffold {
-                    crate::scaffold::Scaffold::Complete { file_name, file_body: _ } => self.deleted_file.borrow_mut().push(file_name.clone()),
-                    crate::scaffold::Scaffold::Pending { file_name } => self.deleted_file.borrow_mut().push(file_name.clone())
+                    crate::scaffold::Scaffold::Complete {
+                        file_name,
+                        file_body: _,
+                    } => self.deleted_file.borrow_mut().push(file_name.clone()),
+                    crate::scaffold::Scaffold::Pending { file_name } => {
+                        self.deleted_file.borrow_mut().push(file_name.clone())
+                    }
                 }
                 Ok(())
             }
@@ -119,7 +129,7 @@ mod tests{
             fn dummy_new(stub_delete_executor_ref: Arc<StubDeleteExecutor>) -> Self {
                 DeleteCommandImpl {
                     template_repository_ref: Arc::new(StubTemplateRepository::default()),
-                    delete_executor_ref: stub_delete_executor_ref
+                    delete_executor_ref: stub_delete_executor_ref,
                 }
             }
         }
@@ -130,7 +140,10 @@ mod tests{
         assert!(actual.is_ok());
         assert_eq!(
             *stub_delete_executor_ref.deleted_file.borrow(),
-            vec!["foobar/foo/bar01.md".to_string(), "foobar/foo/bar02.md".to_string()]
+            vec![
+                "foobar/foo/bar01.md".to_string(),
+                "foobar/foo/bar02.md".to_string()
+            ]
         );
     }
 }
