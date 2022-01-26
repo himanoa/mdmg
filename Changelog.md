@@ -1,5 +1,17 @@
 # Changelog
 
+## v0.1.3
+
+### Added
+
+- Implmeneted `cargo remove` subcommand.
+  - Delete files based on mdmg template
+
+### Changed
+
+- Use coveralls.io
+- Add a delete command tests
+
 ## v0.1.2-alpha.2
 
 - Fix a upload target
