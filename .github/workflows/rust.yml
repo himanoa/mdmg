@@ -12,6 +12,9 @@ jobs:
   rustfmt:
     name: Rustfmt
     runs-on: ubuntu-latest
+    container:
+      image: xd009642/tarpaulin:0.19.1
+      options: --security-opt seccomp=unconfined
 
     steps:
     - name: Checkout
@@ -78,7 +81,7 @@ jobs:
 
     - name: Run test and generate coveradge and upload to coverall 
       run:
-        cargo +nightly tarpaulin --verbose --all-features --coverall ${{ github.token }}
+        cargo tarpaulin --verbose --all-features --coverall ${{ github.token }}
 
 
   release:
