@@ -84,7 +84,7 @@ jobs:
       uses: actions-rs/tarpaulin@v0.1
       with:
         version: '0.19.1'
-        args: -- --all-features --coveralls ${{ github.token }}
+        args: --all-features --coveralls ${{ github.token }}
 
     - name: Run tests
       if: runner.os != 'Linux'
