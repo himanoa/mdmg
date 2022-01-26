@@ -79,13 +79,12 @@ jobs:
         command: build
         args: --verbose --all --all-targets --all-features
 
-    - name: Install coveradge
+    - name: Run cargo-tarpaulin
       if: runner.os == 'Linux'
-      run: cargo install cargo-tarpaulin
-
-    - name: Run test and generate coveradge and upload to coverall 
-      if: runner.os == 'Linux'
-      run: cargo tarpaulin --verbose --all-features --coverall ${{ github.token }}
+      uses: actions-rs/tarpaulin@v0.1
+      with:
+        version: '0.19.1'
+        args: -- --all-features --coverall ${{ github.token }}
 
     - name: Run tests
       if: runner.os != 'Linux'
