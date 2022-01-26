@@ -14,9 +14,10 @@ pub trait DeleteExecutorDeps {
 }
 
 pub trait DeleteExecutor {
-    fn execute(self, scaffold: &Scaffold) -> Result<()>; 
+    fn execute(&self, scaffold: &Scaffold) -> Result<()>; 
 }
 
+#[derive(Clone, Copy)]
 pub struct FSDeleteExecutorDeps {}
 
 impl FSDeleteExecutorDeps {
@@ -54,7 +55,7 @@ impl<T: DeleteExecutorDeps> FSDeleteExecutor<T> {
 }
 
 impl<T: DeleteExecutorDeps> DeleteExecutor for FSDeleteExecutor<T> {
-    fn execute(self, scaffold: &Scaffold) -> Result<()> {
+    fn execute(&self, scaffold: &Scaffold) -> Result<()> {
         let file_name = match scaffold {
             Scaffold::Complete { file_name, file_body: _ } => file_name,
             Scaffold::Pending { file_name } => file_name
