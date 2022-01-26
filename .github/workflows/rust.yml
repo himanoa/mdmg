@@ -76,11 +76,9 @@ jobs:
         command: build
         args: --verbose --all --all-targets --all-features
 
-    - name: Run tests
-      uses: actions-rs/cargo@v1
-      with:
-        command: test
-        args: --verbose --all --all-targets --all-features
+    - name: Run test and generate coveradge and upload to coverall 
+      run:
+        cargo +nightly tarpaulin --verbose --all-features --coverall ${{ github.token }}
 
 
   release:
