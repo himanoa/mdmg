@@ -80,9 +80,15 @@ jobs:
         args: --verbose --all --all-targets --all-features
 
     - name: Run test and generate coveradge and upload to coverall 
-      run:
-        cargo tarpaulin --verbose --all-features --coverall ${{ github.token }}
+      if: runner.os == 'Linux'
+      run: cargo tarpaulin --verbose --all-features --coverall ${{ github.token }}
 
+    - name: Run tests
+      if: runner.os != 'Linux'
+      uses: actions-rs/cargo@v1
+      with:
+        command: test
+        args: --verbose --all --all-targets --all-features
 
   release:
     strategy:
