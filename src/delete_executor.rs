@@ -71,7 +71,11 @@ impl<T: DeleteExecutorDeps> DeleteExecutor for FSDeleteExecutor<T> {
 
         if self.deps.is_empty_directory(parent_path) {
             self.deps.delete_directory(parent_path)?;
-            println!("{} {}", Paint::green("Deleted empty directory"), parent_path.to_string_lossy());
+            println!(
+                "{} {}",
+                Paint::green("Deleted empty directory"),
+                parent_path.to_string_lossy()
+            );
         }
 
         Ok(())
