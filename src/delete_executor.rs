@@ -1,11 +1,13 @@
 use crate::scaffold::Scaffold;
 use crate::MdmgError;
 use crate::Result;
-use yansi::Paint;
 
 use std::fs::{read_dir, remove_dir, remove_file};
 use std::path::Path;
 use std::sync::Arc;
+
+use derive_more::Constructor;
+use yansi::Paint;
 
 pub trait DeleteExecutorDeps {
     fn delete_file(&self, path: &Path) -> Result<()>;
@@ -17,14 +19,8 @@ pub trait DeleteExecutor {
     fn execute(&self, scaffold: &Scaffold) -> Result<()>;
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Constructor)]
 pub struct FSDeleteExecutorDeps {}
-
-impl FSDeleteExecutorDeps {
-    pub fn new() -> Self {
-        FSDeleteExecutorDeps {}
-    }
-}
 
 impl DeleteExecutorDeps for FSDeleteExecutorDeps {
     fn delete_file(&self, path: &Path) -> Result<()> {
@@ -54,10 +50,7 @@ impl<T: DeleteExecutorDeps> FSDeleteExecutor<T> {
 impl<T: DeleteExecutorDeps> DeleteExecutor for FSDeleteExecutor<T> {
     fn execute(&self, scaffold: &Scaffold) -> Result<()> {
         let file_name = match scaffold {
-            Scaffold::Complete {
-                file_name,
-                file_body: _,
-            } => file_name,
+            Scaffold::Complete { file_name, file_body: _ } => file_name,
             Scaffold::Pending { file_name } => file_name,
         };
         let path = Path::new(file_name);
@@ -65,9 +58,7 @@ impl<T: DeleteExecutorDeps> DeleteExecutor for FSDeleteExecutor<T> {
         self.deps.delete_file(path)?;
         println!("{} {}", Paint::green("Deleted"), file_name);
 
-        let parent_path = &path
-            .parent()
-            .ok_or_else(|| MdmgError::ParentDirectoryIsNotFound(file_name.clone()))?;
+        let parent_path = &path.parent().ok_or_else(|| MdmgError::ParentDirectoryIsNotFound(file_name.clone()))?;
 
         if self.deps.is_empty_directory(parent_path) {
             self.deps.delete_directory(parent_path)?;
@@ -82,6 +73,7 @@ impl<T: DeleteExecutorDeps> DeleteExecutor for FSDeleteExecutor<T> {
     }
 }
 
+#[cfg(not(tarpaulin_include))]
 #[cfg(test)]
 mod tests {
     use super::{DeleteExecutor, DeleteExecutorDeps, FSDeleteExecutor};
@@ -92,6 +84,43 @@ mod tests {
     use std::cell::Cell;
     use std::path::Path;
     use std::sync::Arc;
+
+    #[test]
+    pub fn delete_only_file_when_pending_scaffold_only() {
+        #[derive(Default)]
+        struct StubDeleteExecutorDeps {
+            pub deleted_file_path: Cell<Option<String>>,
+            pub deleted_directory_path: Cell<Option<String>>,
+        }
+        impl DeleteExecutorDeps for StubDeleteExecutorDeps {
+            fn delete_file(&self, path: &std::path::Path) -> crate::Result<()> {
+                self.deleted_file_path
+                    .replace(path.to_str().map(|s| s.to_string()));
+                Ok(())
+            }
+            fn delete_directory(&self, path: &Path) -> crate::Result<()> {
+                self.deleted_directory_path
+                    .replace(path.to_str().map(|s| s.to_string()));
+                Ok(())
+            }
+            fn is_empty_directory(&self, _directory_path: &Path) -> bool {
+                false
+            }
+        }
+
+        let stub_deps = Arc::new(StubDeleteExecutorDeps::default());
+        let executor = FSDeleteExecutor::new(stub_deps.clone());
+        let actual = executor.execute(&Scaffold::Pending {
+            file_name: "foo/bar.md".to_string()
+        });
+
+        assert!(actual.is_ok());
+        assert_eq!(
+            stub_deps.deleted_file_path.take(),
+            Some("foo/bar.md".to_string())
+        );
+        assert_eq!(stub_deps.deleted_directory_path.take(), None)
+    }
 
     #[test]
     pub fn delete_only_file() {
