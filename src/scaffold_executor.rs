@@ -63,11 +63,20 @@ impl ScaffoldExecutor for FSScaffoldExecutor {
 #[cfg(not(tarpaulin_include))]
 #[cfg(test)]
 mod tests {
-    use super::{FSScaffoldExecutor, ScaffoldExecutor};
+    use super::{FSScaffoldExecutor, ScaffoldExecutor, DryRunScaffoldExecutor};
     use crate::scaffold::Scaffold;
     use std::fs::{read_to_string, remove_dir_all, write, create_dir_all};
     use std::path::Path;
 
+    #[test]
+    pub fn dryrun_executor_execute_is_ok() {
+        let executor = DryRunScaffoldExecutor {};
+        let scaffold = Scaffold::Complete {
+            file_name: "Foobar".to_string(),
+            file_body: "hello_world".to_string(),
+        };
+        assert!(executor.execute(&scaffold).is_ok());
+    }
     #[test]
     #[cfg_attr(not(feature = "fs-test"), ignore)]
     pub fn fsscaffold_executor_execute_is_not_created_files_when_exiist() {
