@@ -6,28 +6,17 @@ use std::io::Write;
 use std::path::Path;
 
 use yansi::Paint;
+use derive_more::Constructor;
 
 pub trait ScaffoldExecutor {
     fn execute(self, scaffold: &Scaffold) -> Result<()>;
 }
 
-#[derive(Clone, Debug, Copy)]
+#[derive(Clone, Debug, Copy, Constructor)]
 pub struct DryRunScaffoldExecutor {}
 
-#[derive(Clone, Debug, Copy)]
+#[derive(Clone, Debug, Copy, Constructor)]
 pub struct FSScaffoldExecutor {}
-
-impl FSScaffoldExecutor {
-    pub fn new() -> Self {
-        FSScaffoldExecutor {}
-    }
-}
-
-impl DryRunScaffoldExecutor {
-    pub fn new() -> Self {
-        DryRunScaffoldExecutor {}
-    }
-}
 
 impl ScaffoldExecutor for DryRunScaffoldExecutor {
     fn execute(self, scaffold: &Scaffold) -> Result<()> {
@@ -83,7 +72,7 @@ mod tests {
     #[cfg_attr(not(feature = "fs-test"), ignore)]
     pub fn fsscaffold_executor_execute_is_not_created_files_when_exiist() {
         let executor = FSScaffoldExecutor {};
-        let path = "support/fs_scaffold_executor_execute/foobar.md".to_string();
+        let path = "support/fs_scaffold_executor_execute_when_exist/foobar.md".to_string();
 
         assert!(create_dir_all(Path::new(&path).parent().unwrap()).is_ok());
         assert!(write(&path, b"dummy").is_ok());
@@ -93,7 +82,7 @@ mod tests {
             file_body: "hello_world".to_string(),
         };
         assert_eq!(executor.execute(&scaffold).unwrap(), ());
-        remove_dir_all("support/fs_scaffold_executor_execute").unwrap();
+        remove_dir_all("support/fs_scaffold_executor_execute_when_exist").unwrap();
     }
 
     #[test]
