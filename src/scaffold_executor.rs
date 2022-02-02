@@ -71,11 +71,30 @@ impl ScaffoldExecutor for FSScaffoldExecutor {
     }
 }
 
+#[cfg(not(tarpaulin_include))]
 #[cfg(test)]
 mod tests {
     use super::{FSScaffoldExecutor, ScaffoldExecutor};
     use crate::scaffold::Scaffold;
-    use std::fs::{read_to_string, remove_dir_all};
+    use std::fs::{read_to_string, remove_dir_all, write, create_dir_all};
+    use std::path::Path;
+
+    #[test]
+    #[cfg_attr(not(feature = "fs-test"), ignore)]
+    pub fn fsscaffold_executor_execute_is_not_created_files_when_exiist() {
+        let executor = FSScaffoldExecutor {};
+        let path = "support/fs_scaffold_executor_execute/foobar.md".to_string();
+
+        assert!(create_dir_all(Path::new(&path).parent().unwrap()).is_ok());
+        assert!(write(&path, b"dummy").is_ok());
+
+        let scaffold = Scaffold::Complete {
+            file_name: path.clone(),
+            file_body: "hello_world".to_string(),
+        };
+        assert_eq!(executor.execute(&scaffold).unwrap(), ());
+        remove_dir_all("support/fs_scaffold_executor_execute").unwrap();
+    }
 
     #[test]
     #[cfg_attr(not(feature = "fs-test"), ignore)]
