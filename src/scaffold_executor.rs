@@ -5,8 +5,8 @@ use std::fs::{create_dir_all, File};
 use std::io::Write;
 use std::path::Path;
 
-use yansi::Paint;
 use derive_more::Constructor;
+use yansi::Paint;
 
 pub trait ScaffoldExecutor {
     fn execute(self, scaffold: &Scaffold) -> Result<()>;
@@ -63,9 +63,9 @@ impl ScaffoldExecutor for FSScaffoldExecutor {
 #[cfg(not(tarpaulin_include))]
 #[cfg(test)]
 mod tests {
-    use super::{FSScaffoldExecutor, ScaffoldExecutor, DryRunScaffoldExecutor};
+    use super::{DryRunScaffoldExecutor, FSScaffoldExecutor, ScaffoldExecutor};
     use crate::scaffold::Scaffold;
-    use std::fs::{read_to_string, remove_dir_all, write, create_dir_all};
+    use std::fs::{create_dir_all, read_to_string, remove_dir_all, write};
     use std::path::Path;
 
     #[test]
@@ -87,10 +87,10 @@ mod tests {
         assert!(write(&path, b"dummy").is_ok());
 
         let scaffold = Scaffold::Complete {
-            file_name: path.clone(),
+            file_name: path,
             file_body: "hello_world".to_string(),
         };
-        assert_eq!(executor.execute(&scaffold).unwrap(), ());
+        assert!(executor.execute(&scaffold).is_ok());
         remove_dir_all("support/fs_scaffold_executor_execute_when_exist").unwrap();
     }
 

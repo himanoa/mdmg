@@ -50,7 +50,10 @@ impl<T: DeleteExecutorDeps> FSDeleteExecutor<T> {
 impl<T: DeleteExecutorDeps> DeleteExecutor for FSDeleteExecutor<T> {
     fn execute(&self, scaffold: &Scaffold) -> Result<()> {
         let file_name = match scaffold {
-            Scaffold::Complete { file_name, file_body: _ } => file_name,
+            Scaffold::Complete {
+                file_name,
+                file_body: _,
+            } => file_name,
             Scaffold::Pending { file_name } => file_name,
         };
         let path = Path::new(file_name);
@@ -58,7 +61,9 @@ impl<T: DeleteExecutorDeps> DeleteExecutor for FSDeleteExecutor<T> {
         self.deps.delete_file(path)?;
         println!("{} {}", Paint::green("Deleted"), file_name);
 
-        let parent_path = &path.parent().ok_or_else(|| MdmgError::ParentDirectoryIsNotFound(file_name.clone()))?;
+        let parent_path = &path
+            .parent()
+            .ok_or_else(|| MdmgError::ParentDirectoryIsNotFound(file_name.clone()))?;
 
         if self.deps.is_empty_directory(parent_path) {
             self.deps.delete_directory(parent_path)?;
@@ -111,7 +116,7 @@ mod tests {
         let stub_deps = Arc::new(StubDeleteExecutorDeps::default());
         let executor = FSDeleteExecutor::new(stub_deps.clone());
         let actual = executor.execute(&Scaffold::Pending {
-            file_name: "foo/bar.md".to_string()
+            file_name: "foo/bar.md".to_string(),
         });
 
         assert!(actual.is_ok());
