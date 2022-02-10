@@ -87,7 +87,7 @@ mod tests {
     use crate::scaffold::Scaffold;
 
     use std::cell::Cell;
-    use std::fs::{create_dir, write, remove_dir, remove_file};
+    use std::fs::{create_dir, remove_dir, remove_file, write};
     use std::path::Path;
     use std::sync::Arc;
 
@@ -281,9 +281,10 @@ mod tests {
     }
 
     #[test]
-    #[cfg_attr(not(feature="fs-test"), ignore)]
+    #[cfg_attr(not(feature = "fs-test"), ignore)]
     pub fn fs_delete_executor_deps_delete_file_can_delete_file() {
-        let file_path = Path::new("./support/fs_delete_executor_deps_delete_file_can_delete_file/dummy.txt");
+        let file_path =
+            Path::new("./support/fs_delete_executor_deps_delete_file_can_delete_file/dummy.txt");
         assert!(create_dir(&file_path.parent().unwrap()).is_ok());
         assert!(write(file_path, "dummy").is_ok());
 
@@ -294,9 +295,11 @@ mod tests {
     }
 
     #[test]
-    #[cfg_attr(not(feature="fs-test"), ignore)]
+    #[cfg_attr(not(feature = "fs-test"), ignore)]
     pub fn fs_delete_executor_deps_delete_file_failed_when_not_exist_file() {
-        let file_path = Path::new("./support/fs_delete_executor_deps_delete_file_failed_when_not_exist_file/dummy.txt");
+        let file_path = Path::new(
+            "./support/fs_delete_executor_deps_delete_file_failed_when_not_exist_file/dummy.txt",
+        );
 
         let deps = FSDeleteExecutorDeps::new();
         let actual = deps.delete_file(file_path);
@@ -304,11 +307,11 @@ mod tests {
         assert!(!file_path.exists());
     }
 
-
     #[test]
-    #[cfg_attr(not(feature="fs-test"), ignore)]
+    #[cfg_attr(not(feature = "fs-test"), ignore)]
     pub fn fs_delete_executor_deps_delete_directory_can_delete_directory() {
-        let path = Path::new("./support/fs_delete_executor_deps_delete_directory_can_delete_directory");
+        let path =
+            Path::new("./support/fs_delete_executor_deps_delete_directory_can_delete_directory");
         assert!(create_dir(&path).is_ok());
 
         let deps = FSDeleteExecutorDeps::new();
@@ -317,9 +320,11 @@ mod tests {
     }
 
     #[test]
-    #[cfg_attr(not(feature="fs-test"), ignore)]
+    #[cfg_attr(not(feature = "fs-test"), ignore)]
     pub fn fs_delete_executor_deps_delete_directory_failed_when_not_exist_file() {
-        let file_path = Path::new("./support/fs_delete_executor_deps_delete_directory_failed_when_not_exist_file/");
+        let file_path = Path::new(
+            "./support/fs_delete_executor_deps_delete_directory_failed_when_not_exist_file/",
+        );
 
         let deps = FSDeleteExecutorDeps::new();
         let actual = deps.delete_directory(file_path);
@@ -328,9 +333,10 @@ mod tests {
     }
 
     #[test]
-    #[cfg_attr(not(feature="fs-test"), ignore)]
+    #[cfg_attr(not(feature = "fs-test"), ignore)]
     pub fn fs_delete_executor_deps_is_empty_directory_return_to_true() {
-        let path = Path::new("./support/fs_delete_executor_deps_is_empty_directory_return_to_true/");
+        let path =
+            Path::new("./support/fs_delete_executor_deps_is_empty_directory_return_to_true/");
         assert!(create_dir(path).is_ok());
 
         let deps = FSDeleteExecutorDeps::new();
@@ -339,9 +345,10 @@ mod tests {
     }
 
     #[test]
-    #[cfg_attr(not(feature="fs-test"), ignore)]
+    #[cfg_attr(not(feature = "fs-test"), ignore)]
     pub fn fs_delete_executor_deps_is_empty_directory_return_to_false() {
-        let path = Path::new("./support/fs_delete_executor_deps_is_empty_directory_return_to_false/");
+        let path =
+            Path::new("./support/fs_delete_executor_deps_is_empty_directory_return_to_false/");
         let file_path = path.join("dummy.txt");
         assert!(create_dir(path).is_ok());
         assert!(write(&file_path, "dummy").is_ok());
