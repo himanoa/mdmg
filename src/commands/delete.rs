@@ -53,7 +53,7 @@ impl DeleteCommand for DeleteCommandImpl {
         for scaffold in scaffolds.into_iter() {
             match &self.delete_executor().execute(&scaffold) {
                 Ok(_) => {}
-                Err(e) => eprintln!("{}", e.to_string()),
+                Err(e) => eprintln!("{}", e),
             }
         }
 

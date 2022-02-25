@@ -49,28 +49,31 @@ impl GenerateCommand for GenerateCommandImpl {
 #[cfg(not(tarpaulin_include))]
 #[cfg(test)]
 mod tests {
-    use std::fs::{create_dir, write, remove_file, remove_dir};
+    use std::fs::{remove_file, write};
     use std::path::Path;
 
     use indoc::indoc;
 
     use super::*;
 
-
     fn setup_template() {
-        let path = Path::new(".mdmg/");
-        assert!(write(".mdmg/example.md", indoc! {"
+        assert!(write(
+            ".mdmg/example.md",
+            indoc! {"
           ## test.md
 
           ```
           hello
           ```
-        "}.to_string()).is_ok());
+        "}
+            .to_string()
+        )
+        .is_ok());
     }
 
     fn terradown_template() {
         let path = Path::new(".mdmg/example.md");
-        
+
         assert!(remove_file(path).is_ok());
         assert!(remove_file("test.md").is_ok());
     }
@@ -81,9 +84,8 @@ mod tests {
         setup_template();
         let command = GenerateCommandImpl::new();
         let actual = command.run("example".to_string(), "foo".to_string(), false);
-        
+
         assert!(actual.is_ok());
         terradown_template();
     }
-    
 }
