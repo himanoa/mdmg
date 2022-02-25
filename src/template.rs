@@ -123,6 +123,7 @@ pub fn render(template: Template, ctx: &MdmgCtx) -> Result<String> {
         .map_err(|e| MdmgError::TempalteRenderError { reason: e.desc })
 }
 
+#[cfg(not(tarpaulin_include))]
 #[cfg(test)]
 mod tests {
     use super::*;

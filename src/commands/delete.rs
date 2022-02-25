@@ -31,6 +31,7 @@ impl Dependencies for DeleteCommandImpl {
     }
 }
 
+#[cfg(not(tarpaulin_include))]
 impl DeleteCommandImpl {
     pub fn new() -> Self {
         let current_dir = current_dir().expect("failed fetch current dir");
@@ -60,6 +61,7 @@ impl DeleteCommand for DeleteCommandImpl {
     }
 }
 
+#[cfg(not(tarpaulin_include))]
 #[cfg(test)]
 mod tests {
     use crate::{
