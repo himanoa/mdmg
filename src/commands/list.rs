@@ -1,6 +1,6 @@
+use crate::logger::{Logger, StdoutLogger};
 use crate::template_repository::{FSTemplateRepository, TemplateRepository};
 use crate::Result;
-use crate::logger::{Logger, StdoutLogger};
 use std::env::current_dir;
 use std::sync::Arc;
 
@@ -15,15 +15,17 @@ pub trait Dependencies {
 
 pub struct ListCommandImpl {
     logger_instance: Arc<dyn Logger>,
-    template_repository_instance: Arc<dyn TemplateRepository>
+    template_repository_instance: Arc<dyn TemplateRepository>,
 }
 
 impl Default for ListCommandImpl {
     fn default() -> Self {
         let current_dir = current_dir().expect("failed fetch current dir");
         ListCommandImpl {
-            template_repository_instance: Arc::new(FSTemplateRepository::new(current_dir.join(".mdmg"))),
-            logger_instance: Arc::new(StdoutLogger::new())
+            template_repository_instance: Arc::new(FSTemplateRepository::new(
+                current_dir.join(".mdmg"),
+            )),
+            logger_instance: Arc::new(StdoutLogger::new()),
         }
     }
 }
@@ -54,7 +56,7 @@ mod tests {
 
     use super::*;
     use crate::logger::Logger;
-    use crate::template_repository::{TemplateRepository, FileName};
+    use crate::template_repository::{FileName, TemplateRepository};
     use crate::Result;
     use derive_more::Constructor;
 
@@ -65,10 +67,10 @@ mod tests {
 
         #[derive(Debug, Constructor)]
         struct DummyLogger {
-            outputs: Mutex<Vec<String>>
+            outputs: Mutex<Vec<String>>,
         }
 
-        impl TemplateRepository for DummyTemplateRepository{
+        impl TemplateRepository for DummyTemplateRepository {
             fn list(&self) -> Result<Vec<crate::template_repository::FileName>> {
                 Ok(vec![FileName::new("foo")])
             }
@@ -86,10 +88,13 @@ mod tests {
         let logger = Arc::new(DummyLogger::new(Mutex::new(vec![])));
         let command = ListCommandImpl {
             logger_instance: logger.clone(),
-            template_repository_instance: Arc::new(DummyTemplateRepository::new())
+            template_repository_instance: Arc::new(DummyTemplateRepository::new()),
         };
 
         assert!(command.run().is_ok());
-        assert_eq!(*logger.clone().outputs.lock().unwrap(), vec!["foo".to_string()])
+        assert_eq!(
+            *logger.clone().outputs.lock().unwrap(),
+            vec!["foo".to_string()]
+        )
     }
 }

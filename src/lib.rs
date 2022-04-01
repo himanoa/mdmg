@@ -1,6 +1,7 @@
 mod commands;
 mod delete_executor;
 mod error;
+mod logger;
 mod markdown;
 mod opts;
 mod output;
@@ -8,7 +9,6 @@ mod scaffold;
 mod scaffold_executor;
 mod template;
 mod template_repository;
-mod logger;
 
 use crate::commands::delete::{DeleteCommand, DeleteCommandImpl};
 use crate::commands::generate::{GenerateCommand, GenerateCommandImpl};
