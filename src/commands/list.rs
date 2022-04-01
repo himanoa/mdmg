@@ -43,7 +43,7 @@ impl ListCommand for ListCommandImpl {
     fn run(&self) -> Result<()> {
         let template_list = self.template_repository().list()?;
         for template in template_list.iter() {
-            self.logger().info(&format!("{}", template.0))
+            self.logger().info(&template.0)
         }
         Ok(())
     }
@@ -93,8 +93,8 @@ mod tests {
 
         assert!(command.run().is_ok());
         assert_eq!(
-            *logger.clone().outputs.lock().unwrap(),
+            *logger.outputs.lock().unwrap(),
             vec!["foo".to_string()]
-        )
+        );
     }
 }
