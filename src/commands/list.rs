@@ -92,9 +92,6 @@ mod tests {
         };
 
         assert!(command.run().is_ok());
-        assert_eq!(
-            *logger.outputs.lock().unwrap(),
-            vec!["foo".to_string()]
-        );
+        assert_eq!(*logger.outputs.lock().unwrap(), vec!["foo".to_string()]);
     }
 }
