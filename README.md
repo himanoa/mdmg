@@ -1,5 +1,7 @@
 # Mdmg
 
+[![Coverage Status](https://coveralls.io/repos/github/himanoa/mdmg/badge.svg?branch=master)](https://coveralls.io/github/himanoa/mdmg?branch=master)
+
 A scaffold prototype code tool.
 
 ![mdmg-demo](./assets/demo.gif)
