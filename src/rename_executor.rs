@@ -66,6 +66,7 @@ mod tests {
         assert_eq!(create_new_name("exampleService", "example", "himanoa"), RenamedName::new("himanoaService".to_string()), "Camel case test");
         assert_eq!(create_new_name("example-service", "example", "himanoa"), RenamedName::new("himanoa-service".to_string()), "Kebab case test");
         assert_eq!(create_new_name("example_service", "example", "himanoa"), RenamedName::new("himanoa_service".to_string()), "Snake case test");
+        assert_eq!(create_new_name("example_service", "adfadf", "himanoa"), RenamedName::new("example_service".to_string()), "No replace");
     }
 }
 
