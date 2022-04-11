@@ -1,52 +1,58 @@
-use crate::logger::Logger;
+use crate::{logger::Logger, error::MdmgError};
 use crate::scaffold::Scaffold;
 use crate::Result;
 
-use derive_more::{Constructor, Display, Deref, From, Into};
+use derive_more::Constructor;
 use inflector::Inflector;
 
-#[derive(Debug, Clone, Copy, Constructor, PartialEq, Eq, Display, Deref, From, Into)]
-pub struct BeforeRenameName<'a>(&'a str);
-
-#[derive(Debug, Clone, Constructor, PartialEq, Eq, Display, Deref, From, Into)]
-pub struct RenamedName(String);
-
-pub fn create_new_name(
-    before_name: &str,
-    before_identify: &str,
-    after_identify: &str
-) -> RenamedName {
-    let renamed_file_name: String = before_name
+pub fn rename(rename_target: &str, before_identify: &str, after_identify: &str) -> String {
+    rename_target
         .replace(&before_identify.to_pascal_case(),&after_identify.to_pascal_case())
         .replace(&before_identify.to_camel_case(), &after_identify.to_camel_case())
         .replace(&before_identify.to_kebab_case(), &after_identify.to_kebab_case())
         .replace(&before_identify.to_snake_case(), &after_identify.to_snake_case())
-        .to_string();
-    RenamedName::new(renamed_file_name)
+        .to_string()
 }
 
-#[derive(Debug, Clone, Constructor, PartialEq, Eq)]
-pub struct RenameFile<'a> { 
-    id: BeforeRenameName<'a>,
-    renamed_file_name: RenamedName,
-    replaced_file_body: &'a str
+#[derive(Debug, Clone, Constructor, PartialEq, Eq, Default)]
+pub struct ReplacementParameter {
+    id: String,
+    renamed_name: String,
+    before_replace_body: String,
+    replaced_body: String
 }
 
-impl<'a> RenameFile<'a> {
-    pub fn create_rename_file(
-        logger: impl Logger,
-        scaffold: &'a Scaffold,
-        before_identify: &'a str,
-        after_identify: &'a str
-    ) -> RenamedName {
-        let (file_name, _) = match scaffold {
-            Scaffold::Pending { file_name: _ } => panic!("received pending file"),
+impl ReplacementParameter {
+    pub fn from_scaffold(
+        scaffold: &Scaffold,
+        before_identify: &str,
+        after_identify: &str
+    ) -> Result<ReplacementParameter> {
+        let (file_name, file_body) = match scaffold {
+            Scaffold::Pending { file_name } => { return Err(MdmgError::ReadPendingScaffoldError { file_name: file_name.clone() }) },
             Scaffold::Complete { file_name, file_body } => (file_name, file_body)
         };
-        logger.debug(format!("before name: {}", file_name).as_str());
-        let renamed_file = create_new_name(&file_name, before_identify, after_identify);
-        logger.debug(format!("renamed name: {}", renamed_file).as_str());
-        renamed_file
+        let renamed_file_name = rename(&file_name, before_identify, after_identify);
+        let replaced_file_body = rename(&file_body, before_identify, after_identify);
+
+        Ok(ReplacementParameter::new(
+            file_name.clone(),
+            renamed_file_name,
+            file_body.clone(),
+            replaced_file_body
+        ))
+    }
+
+    pub fn name_changed(&self) -> bool {
+        self.id != self.renamed_name
+    }
+
+    pub fn body_changed(&self) -> bool {
+        self.before_replace_body != self.replaced_body
+    }
+
+    pub fn no_changed(&self) -> bool {
+        !self.name_changed() && !self.body_changed()
     }
 }
 
@@ -57,16 +63,36 @@ pub trait RenameExecutor {
 #[cfg(not(tarpaulin_include))]
 #[cfg(test)]
 mod tests {
-    use super::RenamedName;
-    use crate::rename_executor::create_new_name;
+    use super::{rename, ReplacementParameter};
 
     #[test]
-    fn test_create_new_name() {
-        assert_eq!(create_new_name("ExampleService", "Example", "Himanoa"), RenamedName::new("HimanoaService".to_string()), "Pascal case test");
-        assert_eq!(create_new_name("exampleService", "example", "himanoa"), RenamedName::new("himanoaService".to_string()), "Camel case test");
-        assert_eq!(create_new_name("example-service", "example", "himanoa"), RenamedName::new("himanoa-service".to_string()), "Kebab case test");
-        assert_eq!(create_new_name("example_service", "example", "himanoa"), RenamedName::new("himanoa_service".to_string()), "Snake case test");
-        assert_eq!(create_new_name("example_service", "adfadf", "himanoa"), RenamedName::new("example_service".to_string()), "No replace");
+    fn test_rename() {
+        assert_eq!(rename("ExampleService", "Example", "Himanoa"), "HimanoaService".to_string(), "Pascal case test");
+        assert_eq!(rename("exampleService", "example", "himanoa"), "himanoaService".to_string(), "Camel case test");
+        assert_eq!(rename("example-service", "example", "himanoa"), "himanoa-service".to_string(), "Kebab case test");
+        assert_eq!(rename("example_service", "example", "himanoa"), "himanoa_service".to_string(), "Snake case test");
+        assert_eq!(rename("example_service", "adfadf", "himanoa"), "example_service".to_string(), "No replace");
+    }
+
+    #[test]
+    fn test_replacement_parameter_name_changed() {
+        assert!(!ReplacementParameter::default().name_changed(), "id equal renamed_name");
+        assert!(ReplacementParameter { id: "foo".to_string(), renamed_name: "bar".to_string(), ..ReplacementParameter::default() }.name_changed(), "id equal renamed_name")
+    }
+
+    #[test]
+    fn test_replacement_parameter_body_changed() {
+        assert!(!ReplacementParameter::default().body_changed(), "before_replace_body equal replaced_body");
+        assert!(ReplacementParameter { before_replace_body: "foo".to_string(), replaced_body: "bar".to_string(), ..ReplacementParameter::default() }.body_changed(), "before_replace_body not equal replaced_body")
+    }
+
+    #[test]
+    fn test_replacement_parameter_no_changed() {
+        assert!(ReplacementParameter::default().no_changed(), "id equal renamed_name");
+
+        assert!(!ReplacementParameter { id: "foo".to_string(), renamed_name: "bar".to_string(), ..ReplacementParameter::default() }.no_changed(), "id equal renamed_name");
+        assert!(!ReplacementParameter { before_replace_body: "foo".to_string(), replaced_body: "bar".to_string(), ..ReplacementParameter::default() }.no_changed(), "before_replace_body not equal replaced_body");
+        assert!(!ReplacementParameter { before_replace_body: "foo".to_string(), replaced_body: "bar".to_string(), id: "foo".to_string(), renamed_name: "bar".to_string()}.no_changed(), "before_replace_body not equal replaced_body")
     }
 }
 
