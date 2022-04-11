@@ -2,19 +2,19 @@ use crate::logger::Logger;
 use crate::scaffold::Scaffold;
 use crate::Result;
 
-use derive_more::{Constructor, Display};
+use derive_more::{Constructor, Display, Deref, From, Into};
 use inflector::Inflector;
 
-#[derive(Debug, Clone, Copy, Constructor, PartialEq, Eq, Display)]
+#[derive(Debug, Clone, Copy, Constructor, PartialEq, Eq, Display, Deref, From, Into)]
 pub struct BeforeRenameName<'a>(&'a str);
 
-#[derive(Debug, Clone, Constructor, PartialEq, Eq, Display)]
+#[derive(Debug, Clone, Constructor, PartialEq, Eq, Display, Deref, From, Into)]
 pub struct RenamedName(String);
 
-pub fn create_new_name<'a>(
-    before_name: &'a str,
-    before_identify: &'a str,
-    after_identify: &'a str
+pub fn create_new_name(
+    before_name: &str,
+    before_identify: &str,
+    after_identify: &str
 ) -> RenamedName {
     let renamed_file_name: String = before_name
         .replace(&before_identify.to_pascal_case(),&after_identify.to_pascal_case())
@@ -38,7 +38,7 @@ impl<'a> RenameFile<'a> {
         scaffold: &'a Scaffold,
         before_identify: &'a str,
         after_identify: &'a str
-    ) -> Result<RenamedName> {
+    ) -> RenamedName {
         let (file_name, _) = match scaffold {
             Scaffold::Pending { file_name: _ } => panic!("received pending file"),
             Scaffold::Complete { file_name, file_body } => (file_name, file_body)
@@ -46,7 +46,7 @@ impl<'a> RenameFile<'a> {
         logger.debug(format!("before name: {}", file_name).as_str());
         let renamed_file = create_new_name(&file_name, before_identify, after_identify);
         logger.debug(format!("renamed name: {}", renamed_file).as_str());
-        Ok(renamed_file)
+        renamed_file
     }
 }
 
