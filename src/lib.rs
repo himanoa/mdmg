@@ -5,11 +5,11 @@ mod logger;
 mod markdown;
 mod opts;
 mod output;
+mod rename_executor;
 mod scaffold;
 mod scaffold_executor;
 mod template;
 mod template_repository;
-mod rename_executor;
 
 use crate::commands::delete::{DeleteCommand, DeleteCommandImpl};
 use crate::commands::generate::{GenerateCommand, GenerateCommandImpl};
