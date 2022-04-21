@@ -2,7 +2,11 @@ use crate::scaffold::Scaffold;
 use crate::Result;
 use crate::{error::MdmgError, logger::Logger};
 
-use derive_more::{Constructor, Display};
+use derive_more::{Constructor, Display, Into};
+use handlebars::template::Parameter;
+use std::fmt::format;
+use std::fs::{rename as rename_file, read_to_string, write};
+use std::sync::Arc;
 use inflector::Inflector;
 
 fn rename(rename_target: &str, before_identify: &str, after_identify: &str) -> String {
@@ -26,7 +30,7 @@ fn rename(rename_target: &str, before_identify: &str, after_identify: &str) -> S
         .to_string()
 }
 
-#[derive(Debug, Clone, Constructor, PartialEq, Eq, Default)]
+#[derive(Debug, Clone, Constructor, PartialEq, Eq, Default, Into)]
 pub struct ReplacementParameter {
     id: String,
     renamed_name: String,
@@ -83,8 +87,62 @@ pub enum ReplacementOperation {
     RenameAndReplace,
 }
 
-impl From<ReplacementParameter> for ReplacementOperation {
-    fn from(params: ReplacementParameter) -> Self {
+trait ReplacementOperationInterpreter {
+    fn none(&self, id: &str);
+    fn rename(&self, from_name: &str, to_name: &str) -> Result<()>;
+    fn replace(&self, id: &str, replaced_body: &str) -> Result<()>;
+    fn rename_and_replace(&self, parameter: &ReplacementParameter) -> Result<()>;
+
+    fn run(&self, parameter: &ReplacementParameter) -> Result<()> {
+        let operation: ReplacementOperation = ReplacementOperation::from(parameter);
+        match operation {
+            ReplacementOperation::None => Ok(self.none(parameter.id.as_str())),
+            ReplacementOperation::Rename => self.rename(parameter.id.as_str(), parameter.renamed_name.as_str()),
+            ReplacementOperation::Replace => self.replace(parameter.id.as_str(), parameter.replaced_body.as_str()),
+            ReplacementOperation::RenameAndReplace => self.rename_and_replace(parameter)
+        }
+    }
+}
+
+#[derive(Constructor)]
+struct FSReplacementOperationInterpreter {
+    logger_instance: Arc<dyn Logger>
+}
+
+impl ReplacementOperationInterpreter for FSReplacementOperationInterpreter {
+    fn none(&self, id: &str) {
+        self.logger_instance.info(format!("{} is no changed", id).as_str())
+    }
+    fn rename(&self, from_name: &str, to_name: &str) -> Result<()> {
+        self.logger_instance.info(format!("{} rename started.(to: {})", &from_name, &to_name).as_str());
+
+        rename_file(from_name, to_name)?;
+
+        self.logger_instance.info(format!("{} renamed", &from_name).as_str());
+
+        return Ok(())
+    }
+    fn replace(&self, id: &str, replaced_body: &str) -> Result<()> {
+        self.logger_instance.info(format!("{} replace file body started.", &id).as_str());
+
+        write(id, replaced_body)?;
+
+        self.logger_instance.info(format!("{} replaced file body.", &id).as_str());
+
+        Ok(())
+    }
+    fn rename_and_replace(&self, parameter: &ReplacementParameter) -> Result<()> {
+        self.logger_instance.info(format!("{} replace name and body started.(to: {})", &parameter.id, &parameter.renamed_name).as_str());
+
+        write(parameter.renamed_name.as_str(), parameter.replaced_body.as_str())?;
+
+        self.logger_instance.info(format!("{} replaced name and body.(to: {})", &parameter.id, &parameter.renamed_name).as_str());
+        Ok(())
+    }
+}
+
+impl From<&ReplacementParameter> for ReplacementOperation {
+    fn from(params: &ReplacementParameter) -> Self {
         if params.all_changed() {
             Self::RenameAndReplace
         } else if params.body_changed() {
@@ -106,10 +164,15 @@ pub trait RenameExecutor {
     ) -> Result<()>;
 }
 
+
 #[cfg(not(tarpaulin_include))]
 #[cfg(test)]
 mod tests {
+    use crate::rename_executor::ReplacementOperationInterpreter;
+
     use super::{rename, ReplacementOperation, ReplacementParameter};
+    use derive_more::{Deref};
+    use std::cell::Cell;
 
     #[test]
     fn test_rename() {
@@ -214,12 +277,12 @@ mod tests {
     #[test]
     fn test_replacement_operator_from() {
         assert_eq!(
-            ReplacementOperation::from(ReplacementParameter::default()),
+            ReplacementOperation::from(&ReplacementParameter::default()),
             ReplacementOperation::None,
             "before == after"
         );
         assert_eq!(
-            ReplacementOperation::from(ReplacementParameter {
+            ReplacementOperation::from(&ReplacementParameter {
                 id: "foo".to_string(),
                 renamed_name: "bar".to_string(),
                 ..ReplacementParameter::default()
@@ -228,7 +291,7 @@ mod tests {
             "id != renamed_name"
         );
         assert_eq!(
-            ReplacementOperation::from(ReplacementParameter {
+            ReplacementOperation::from(&ReplacementParameter {
                 before_replace_body: "foo".to_string(),
                 replaced_body: "bar".to_string(),
                 ..ReplacementParameter::default()
@@ -237,7 +300,7 @@ mod tests {
             "before_replace_body != replaced_body"
         );
         assert_eq!(
-            ReplacementOperation::from(ReplacementParameter {
+            ReplacementOperation::from(&ReplacementParameter {
                 before_replace_body: "foo".to_string(),
                 replaced_body: "bar".to_string(),
                 id: "foo".to_string(),
@@ -247,4 +310,56 @@ mod tests {
             "all_changed"
         );
     }
+
+    #[test]
+    fn test_replacement_operation_interpreter_when_operation_is_none() {
+        #[derive(Deref)]
+        struct Dummy(pub Cell<bool>);
+
+        impl ReplacementOperationInterpreter for Dummy {
+            fn none(&self, _id: &str) {
+                self.0.replace(true);
+            }
+            fn rename(&self, _from_name: &str, _to_name: &str) -> crate::Result<()> {
+                unreachable!()
+            }
+            fn replace(&self, _id: &str, _replaced_body: &str) -> crate::Result<()> {
+                unreachable!()
+            }
+            fn rename_and_replace(&self, _parameter: &ReplacementParameter) -> crate::Result<()> {
+                unreachable!()
+            }
+        }
+
+        let interpreter = Dummy(Cell::new(false));
+        assert!(interpreter.run(&ReplacementParameter::new("xxx".to_string(), "xxx".to_string(), "xxx".to_string(), "xxx".to_string(),)).is_ok());
+        assert!(interpreter.get());
+    }
+
+    #[test]
+    fn test_replacement_operation_interpreter_when_operation_is_rename() {
+        #[derive(Deref)]
+        struct Dummy(pub Cell<bool>);
+
+        impl ReplacementOperationInterpreter for Dummy {
+            fn none(&self, _id: &str) {
+                unreachable!()
+            }
+            fn rename(&self, _from_name: &str, _to_name: &str) -> crate::Result<()> {
+                self.0.replace(true);
+                Ok(())
+            }
+            fn replace(&self, _id: &str, _replaced_body: &str) -> crate::Result<()> {
+                unreachable!()
+            }
+            fn rename_and_replace(&self, _parameter: &ReplacementParameter) -> crate::Result<()> {
+                unreachable!()
+            }
+        }
+
+        let interpreter = Dummy(Cell::new(false));
+        assert!(interpreter.run(&ReplacementParameter::new("xxx".to_string(), "xxxy".to_string(), "xxx".to_string(), "xxx".to_string(),)).is_ok());
+        assert!(interpreter.get());
+    }
 }
+
