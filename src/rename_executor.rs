@@ -218,6 +218,7 @@ impl RenameExecutor for DefaultRenameExecutor {
 #[cfg(test)]
 mod tests {
     use crate::rename_executor::ReplacementOperationInterpreter;
+    use crate::scaffold::Scaffold;
 
     use super::{rename, run, ReplacementOperation, ReplacementParameter};
     use derive_more::Deref;
@@ -497,5 +498,30 @@ mod tests {
         )
         .is_ok());
         assert!(interpreter.get());
+    }
+
+    #[test]
+    fn test_from_scafold() {
+        let scaffold = Scaffold::Complete { file_name: "sooo".to_string(), file_body: "".to_string() };
+        let parameter = ReplacementParameter::from_scaffold(&scaffold, "before_identify", "after_identify").unwrap();
+        assert!(!parameter.all_changed());
+        assert!(!parameter.name_changed());
+        assert!(!parameter.body_changed());
+
+        let scaffold = Scaffold::Complete { file_name: "sooo".to_string(), file_body: "".to_string() };
+        let parameter = ReplacementParameter::from_scaffold(&scaffold, "so", "af").unwrap();
+        assert!(parameter.name_changed());
+        assert!(!parameter.all_changed());
+        assert!(!parameter.body_changed());
+
+        let scaffold = Scaffold::Complete { file_name: "ooo".to_string(), file_body: "so".to_string() };
+        let parameter = ReplacementParameter::from_scaffold(&scaffold, "so", "af").unwrap();
+        assert!(parameter.body_changed());
+        assert!(!parameter.name_changed());
+        assert!(!parameter.all_changed());
+
+        let scaffold = Scaffold::Complete { file_name: "so".to_string(), file_body: "so".to_string() };
+        let parameter = ReplacementParameter::from_scaffold(&scaffold, "so", "af").unwrap();
+        assert!(parameter.all_changed());
     }
 }
