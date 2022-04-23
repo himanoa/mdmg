@@ -1,11 +1,10 @@
 use crate::error::MdmgError;
+use crate::file::FileName;
 use crate::template::Template;
 use crate::Result;
-use crate::file::FileName;
 
 use std::fs::{read_dir, read_to_string};
 use std::path::{Path, PathBuf};
-
 
 pub trait TemplateRepository {
     fn list(&self) -> Result<Vec<FileName>>;

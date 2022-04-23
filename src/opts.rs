@@ -35,7 +35,7 @@ pub enum Mdmg {
 
         #[structopt()]
         replaced_identify: String,
-    }
+    },
 }
 
 pub fn parse_cli_args() -> Mdmg {

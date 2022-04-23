@@ -55,8 +55,8 @@ mod tests {
     use std::sync::Mutex;
 
     use super::*;
-    use crate::logger::Logger;
     use crate::file::FileName;
+    use crate::logger::Logger;
     use crate::template_repository::TemplateRepository;
     use crate::Result;
     use derive_more::Constructor;

@@ -1,12 +1,15 @@
-use crate::Result;
-use crate::markdown::parse;
+use crate::generated_file_repository::FSGeneratedFileRepository;
 use crate::logger::{Logger, StdoutLogger};
-use crate::rename_executor::{RenameExecutor, DefaultRenameExecutor, FSReplacementOperationInterpreter};
+use crate::markdown::parse;
+use crate::rename_executor::{
+    DefaultRenameExecutor, FSReplacementOperationInterpreter, RenameExecutor,
+};
 use crate::template::{render, MdmgCtx};
 use crate::template_repository::{FSTemplateRepository, TemplateRepository};
+use crate::Result;
 
-use std::sync::Arc;
 use std::env::current_dir;
+use std::sync::Arc;
 
 pub trait RenameCommand {
     fn run(&self, plan_name: &str, identify: &str, replaced_identify: &str) -> Result<()>;
@@ -22,12 +25,19 @@ impl RenameCommandImpl {
     pub fn new() -> Self {
         let current_dir = current_dir().expect("failed fetch current dir");
         let logger = Arc::new(StdoutLogger::new());
-        let replacement_operation_interpreter_instance: Arc<FSReplacementOperationInterpreter> = Arc::new(FSReplacementOperationInterpreter::new(logger.clone()));
+        let replacement_operation_interpreter_instance: Arc<FSReplacementOperationInterpreter> =
+            Arc::new(FSReplacementOperationInterpreter::new(logger.clone()));
+        let generated_file_repository: Arc<FSGeneratedFileRepository> = Arc::new(FSGeneratedFileRepository::new(current_dir.clone()));
 
         RenameCommandImpl {
-            template_repository_instance: Arc::new(FSTemplateRepository::new(current_dir.join(".mdmg"))),
+            template_repository_instance: Arc::new(FSTemplateRepository::new(
+                current_dir.join(".mdmg"),
+            )),
             logger_instance: logger.clone(),
-            rename_executor_instance: Arc::new(DefaultRenameExecutor::new(replacement_operation_interpreter_instance))
+            rename_executor_instance: Arc::new(DefaultRenameExecutor::new(
+                replacement_operation_interpreter_instance,
+                generated_file_repository
+            )),
         }
     }
 }
@@ -55,9 +65,10 @@ impl RenameCommand for RenameCommandImpl {
         let template = self.template_repository().resolve(plan_name.to_string())?;
         let render_ctx = MdmgCtx::new(identify);
         let scaffolds = match parse(render(template, &render_ctx)?) {
-            Ok(scaffolds) => { scaffolds },
-            Err(_) => { return Ok(()) }
+            Ok(scaffolds) => scaffolds,
+            Err(_) => return Ok(()),
         };
-        self.rename_executor().execute(&scaffolds, identify, replaced_identify)
+        self.rename_executor()
+            .execute(&scaffolds, identify, replaced_identify)
     }
 }

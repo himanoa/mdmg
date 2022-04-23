@@ -1,3 +1,4 @@
+use crate::generated_file_repository::{self, GeneratedFileRepository};
 use crate::scaffold::Scaffold;
 use crate::Result;
 use crate::{error::MdmgError, logger::Logger};
@@ -41,6 +42,7 @@ impl ReplacementParameter {
         scaffold: &Scaffold,
         before_identify: &str,
         after_identify: &str,
+        generated_file_repository: Arc<dyn GeneratedFileRepository>,
     ) -> Result<ReplacementParameter> {
         let (file_name, file_body) = match scaffold {
             Scaffold::Pending { file_name } => {
@@ -196,6 +198,7 @@ pub trait RenameExecutor {
 #[derive(Constructor, Clone)]
 pub struct DefaultRenameExecutor {
     interpreter: Arc<dyn ReplacementOperationInterpreter>,
+    generated_file_repository: Arc<dyn GeneratedFileRepository>,
 }
 
 impl RenameExecutor for DefaultRenameExecutor {
@@ -206,8 +209,12 @@ impl RenameExecutor for DefaultRenameExecutor {
         after_identify: &str,
     ) -> Result<()> {
         for scaffold in scaffolds.iter() {
-            let parameter =
-                ReplacementParameter::from_scaffold(scaffold, before_identify, after_identify)?;
+            let parameter = ReplacementParameter::from_scaffold(
+                scaffold,
+                before_identify,
+                after_identify,
+                self.generated_file_repository.clone(),
+            )?;
             run(&parameter, self.interpreter.as_ref())?;
         }
         Ok(())
@@ -217,6 +224,7 @@ impl RenameExecutor for DefaultRenameExecutor {
 #[cfg(not(tarpaulin_include))]
 #[cfg(test)]
 mod tests {
+    use crate::generated_file_repository::GeneratedFileRepository;
     use crate::logger::Logger;
     use crate::rename_executor::{
         DefaultRenameExecutor, FSReplacementOperationInterpreter, RenameExecutor,
@@ -225,8 +233,8 @@ mod tests {
     use crate::scaffold::Scaffold;
 
     use super::{rename, run, ReplacementOperation, ReplacementParameter};
-    use derive_more::{Deref, DerefMut};
-    use std::cell::Cell;
+    use derive_more::{Constructor, Deref, DerefMut};
+    use std::cell::{Cell, RefCell};
     use std::fs::{create_dir, read_to_string, remove_dir, remove_file, write};
     use std::path::Path;
     use std::sync::{Arc, Mutex};
@@ -513,9 +521,23 @@ mod tests {
             file_name: "sooo".to_string(),
             file_body: "".to_string(),
         };
-        let parameter =
-            ReplacementParameter::from_scaffold(&scaffold, "before_identify", "after_identify")
-                .unwrap();
+
+        #[derive(Constructor, Deref)]
+        struct DummyGeneratedFileRepository(String);
+
+        impl GeneratedFileRepository for DummyGeneratedFileRepository {
+            fn resolve(&self, file_name: &std::path::PathBuf) -> crate::Result<String> {
+                Ok(self.0.clone())
+            }
+        }
+
+        let parameter = ReplacementParameter::from_scaffold(
+            &scaffold,
+            "before_identify",
+            "after_identify",
+            Arc::new(DummyGeneratedFileRepository::new("".to_string())),
+        )
+        .unwrap();
         assert!(!parameter.all_changed());
         assert!(!parameter.name_changed());
         assert!(!parameter.body_changed());
@@ -524,7 +546,13 @@ mod tests {
             file_name: "sooo".to_string(),
             file_body: "".to_string(),
         };
-        let parameter = ReplacementParameter::from_scaffold(&scaffold, "so", "af").unwrap();
+        let parameter = ReplacementParameter::from_scaffold(
+            &scaffold,
+            "so",
+            "af",
+            Arc::new(DummyGeneratedFileRepository::new("".to_string())),
+        )
+        .unwrap();
         assert!(parameter.name_changed());
         assert!(!parameter.all_changed());
         assert!(!parameter.body_changed());
@@ -533,7 +561,13 @@ mod tests {
             file_name: "ooo".to_string(),
             file_body: "so".to_string(),
         };
-        let parameter = ReplacementParameter::from_scaffold(&scaffold, "so", "af").unwrap();
+        let parameter = ReplacementParameter::from_scaffold(
+            &scaffold,
+            "so",
+            "af",
+            Arc::new(DummyGeneratedFileRepository::new("so".to_string())),
+        )
+        .unwrap();
         assert!(parameter.body_changed());
         assert!(!parameter.name_changed());
         assert!(!parameter.all_changed());
@@ -542,13 +576,25 @@ mod tests {
             file_name: "so".to_string(),
             file_body: "so".to_string(),
         };
-        let parameter = ReplacementParameter::from_scaffold(&scaffold, "so", "af").unwrap();
+        let parameter = ReplacementParameter::from_scaffold(
+            &scaffold,
+            "so",
+            "af",
+            Arc::new(DummyGeneratedFileRepository::new("so".to_string())),
+        )
+        .unwrap();
         assert!(parameter.all_changed());
 
         let scaffold = Scaffold::Pending {
             file_name: "xxx".to_string(),
         };
-        assert!(ReplacementParameter::from_scaffold(&scaffold, "so", "af").is_err())
+        assert!(ReplacementParameter::from_scaffold(
+            &scaffold,
+            "so",
+            "af",
+            Arc::new(DummyGeneratedFileRepository::new("so".to_string()))
+        )
+        .is_err())
     }
 
     struct DummyLogger(Cell<bool>);
@@ -661,8 +707,23 @@ mod tests {
             }
         }
 
+        #[derive(Constructor)]
+        struct DummyGeneratedFileRepository(
+            RefCell<Vec<Scaffold>>
+        );
+
+        impl GeneratedFileRepository for DummyGeneratedFileRepository {
+            fn resolve(&self, file_name: &std::path::PathBuf) -> crate::Result<String> {
+                let scaffold = self.0.borrow_mut().remove(0);
+                if let Scaffold::Complete { file_body, file_name: _ } = scaffold {
+                    return Ok(file_body);
+                }
+                Ok("".to_string())
+            }
+        }
+
         let interpreter = Arc::new(DummyInterpreter(Mutex::new(vec![])));
-        let executor = DefaultRenameExecutor::new(interpreter.clone());
+
         let scaffolds = vec![
             Scaffold::Complete {
                 file_name: "xxx".to_string(),
@@ -687,6 +748,10 @@ mod tests {
             "replace".to_string(),
             "rename_and_replace".to_string(),
         ];
+
+        let executor = DefaultRenameExecutor::new(
+            interpreter.clone(),
+            Arc::new(DummyGeneratedFileRepository::new(RefCell::new(scaffolds.clone()))));
         assert!(executor
             .execute(&scaffolds, "replace_target", "replaced")
             .is_ok());
