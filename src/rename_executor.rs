@@ -98,10 +98,10 @@ fn run(
 ) -> Result<()> {
     let operation: ReplacementOperation = ReplacementOperation::from(parameter);
     match operation {
-        ReplacementOperation::None =>{
+        ReplacementOperation::None => {
             interpreter.none(parameter.id.as_str());
             Ok(())
-        },
+        }
         ReplacementOperation::Rename => {
             interpreter.rename(parameter.id.as_str(), parameter.renamed_name.as_str())
         }
@@ -546,7 +546,7 @@ mod tests {
         assert!(parameter.all_changed());
 
         let scaffold = Scaffold::Pending {
-            file_name: "xxx".to_string()
+            file_name: "xxx".to_string(),
         };
         assert!(ReplacementParameter::from_scaffold(&scaffold, "so", "af").is_err())
     }
