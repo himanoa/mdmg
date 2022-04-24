@@ -95,7 +95,7 @@ trait ReplacementOperationInterpreter {
 
 fn run(
     parameter: &ReplacementParameter,
-    interpreter: &impl ReplacementOperationInterpreter,
+    interpreter: &dyn ReplacementOperationInterpreter,
 ) -> Result<()> {
     let operation: ReplacementOperation = ReplacementOperation::from(parameter);
     match operation {
@@ -188,11 +188,13 @@ pub trait RenameExecutor {
         scaffolds: &Vec<Scaffold>,
         before_identify: &str,
         after_identify: &str,
-        logger: Arc<dyn Logger>,
     ) -> Result<()>;
 }
 
-struct DefaultRenameExecutor();
+#[derive(Constructor)]
+struct DefaultRenameExecutor {
+    interpreter: Arc<dyn ReplacementOperationInterpreter>,
+}
 
 impl RenameExecutor for DefaultRenameExecutor {
     fn execute(
@@ -200,14 +202,11 @@ impl RenameExecutor for DefaultRenameExecutor {
         scaffolds: &Vec<Scaffold>,
         before_identify: &str,
         after_identify: &str,
-        logger: Arc<dyn Logger>,
     ) -> Result<()> {
-        let interpreter = FSReplacementOperationInterpreter::new(logger);
-
         for scaffold in scaffolds.iter() {
             let parameter =
                 ReplacementParameter::from_scaffold(scaffold, before_identify, after_identify)?;
-            run(&parameter, &interpreter)?;
+            run(&parameter, self.interpreter.as_ref())?;
         }
         Ok(())
     }
@@ -218,16 +217,17 @@ impl RenameExecutor for DefaultRenameExecutor {
 mod tests {
     use crate::logger::Logger;
     use crate::rename_executor::{
-        FSReplacementOperationInterpreter, ReplacementOperationInterpreter,
+        DefaultRenameExecutor, FSReplacementOperationInterpreter, RenameExecutor,
+        ReplacementOperationInterpreter,
     };
-    use crate::scaffold::Scaffold;
+    use crate::scaffold::{self, Scaffold};
 
     use super::{rename, run, ReplacementOperation, ReplacementParameter};
-    use derive_more::Deref;
+    use derive_more::{Deref, DerefMut};
     use std::cell::Cell;
     use std::fs::{create_dir, read_to_string, remove_dir, remove_file, write};
     use std::path::Path;
-    use std::sync::Arc;
+    use std::sync::{Arc, Mutex};
 
     #[test]
     fn test_rename() {
@@ -629,5 +629,60 @@ mod tests {
         assert!(logger.0.get());
         assert!(remove_file(dist_path).is_ok());
         assert!(remove_dir(path).is_ok());
+    }
+
+    #[test]
+    pub fn rename_executor_execute() {
+        #[derive(DerefMut, Deref)]
+        struct DummyInterpreter(pub Mutex<Vec<String>>);
+
+        impl ReplacementOperationInterpreter for DummyInterpreter {
+            fn none(&self, _id: &str) {
+                self.lock().unwrap().push("none".to_string());
+            }
+            fn rename(&self, _from_name: &str, _to_name: &str) -> crate::Result<()> {
+                self.lock().unwrap().push("rename".to_string());
+                Ok(())
+            }
+            fn replace(&self, _id: &str, _replaced_body: &str) -> crate::Result<()> {
+                self.lock().unwrap().push("replace".to_string());
+                Ok(())
+            }
+            fn rename_and_replace(&self, _parameter: &ReplacementParameter) -> crate::Result<()> {
+                self.lock().unwrap().push("rename_and_replace".to_string());
+                Ok(())
+            }
+        }
+
+        let interpreter = Arc::new(DummyInterpreter(Mutex::new(vec![])));
+        let executor = DefaultRenameExecutor::new(interpreter.clone());
+        let scaffolds = vec![
+            Scaffold::Complete {
+                file_name: "xxx".to_string(),
+                file_body: "xxx".to_string(),
+            },
+            Scaffold::Complete {
+                file_name: "replace_target".to_string(),
+                file_body: "xxx".to_string(),
+            },
+            Scaffold::Complete {
+                file_name: "xxx".to_string(),
+                file_body: "replace_target".to_string(),
+            },
+            Scaffold::Complete {
+                file_name: "replace_target".to_string(),
+                file_body: "replace_target".to_string(),
+            },
+        ];
+        let expected_plans = vec![
+            "none".to_string(),
+            "rename".to_string(),
+            "replace".to_string(),
+            "rename_and_replace".to_string(),
+        ];
+        assert!(executor
+            .execute(&scaffolds, "replace_target", "replaced")
+            .is_ok());
+        assert_eq!(interpreter.lock().unwrap().clone(), expected_plans);
     }
 }
