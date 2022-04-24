@@ -83,7 +83,7 @@ mod tests {
             fn info(&self, info: &str) {
                 self.outputs.lock().unwrap().push(info.to_string());
             }
-            fn debug(&self, log: &str) {
+            fn debug(&self, _log: &str) {
                 unreachable!();
             }
         }

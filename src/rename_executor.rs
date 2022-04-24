@@ -26,7 +26,6 @@ fn rename(rename_target: &str, before_identify: &str, after_identify: &str) -> S
             &before_identify.to_snake_case(),
             &after_identify.to_snake_case(),
         )
-        .to_string()
 }
 
 #[derive(Debug, Clone, Constructor, PartialEq, Eq, Default, Into)]
@@ -54,8 +53,8 @@ impl ReplacementParameter {
                 file_body,
             } => (file_name, file_body),
         };
-        let renamed_file_name = rename(&file_name, before_identify, after_identify);
-        let replaced_file_body = rename(&file_body, before_identify, after_identify);
+        let renamed_file_name = rename(file_name, before_identify, after_identify);
+        let replaced_file_body = rename(file_body, before_identify, after_identify);
 
         Ok(ReplacementParameter::new(
             file_name.clone(),
@@ -99,7 +98,10 @@ fn run(
 ) -> Result<()> {
     let operation: ReplacementOperation = ReplacementOperation::from(parameter);
     match operation {
-        ReplacementOperation::None => Ok(interpreter.none(parameter.id.as_str())),
+        ReplacementOperation::None =>{
+            interpreter.none(parameter.id.as_str());
+            Ok(())
+        },
         ReplacementOperation::Rename => {
             interpreter.rename(parameter.id.as_str(), parameter.renamed_name.as_str())
         }
@@ -129,7 +131,7 @@ impl ReplacementOperationInterpreter for FSReplacementOperationInterpreter {
         self.logger_instance
             .info(format!("{} renamed", &from_name).as_str());
 
-        return Ok(());
+        Ok(())
     }
     fn replace(&self, id: &str, replaced_body: &str) -> Result<()> {
         self.logger_instance
@@ -185,7 +187,7 @@ impl From<&ReplacementParameter> for ReplacementOperation {
 pub trait RenameExecutor {
     fn execute(
         self,
-        scaffolds: &Vec<Scaffold>,
+        scaffolds: &[Scaffold],
         before_identify: &str,
         after_identify: &str,
     ) -> Result<()>;
@@ -199,7 +201,7 @@ struct DefaultRenameExecutor {
 impl RenameExecutor for DefaultRenameExecutor {
     fn execute(
         self,
-        scaffolds: &Vec<Scaffold>,
+        scaffolds: &[Scaffold],
         before_identify: &str,
         after_identify: &str,
     ) -> Result<()> {
@@ -220,7 +222,7 @@ mod tests {
         DefaultRenameExecutor, FSReplacementOperationInterpreter, RenameExecutor,
         ReplacementOperationInterpreter,
     };
-    use crate::scaffold::{self, Scaffold};
+    use crate::scaffold::Scaffold;
 
     use super::{rename, run, ReplacementOperation, ReplacementParameter};
     use derive_more::{Deref, DerefMut};
@@ -575,7 +577,7 @@ mod tests {
         assert!(create_dir(path).is_ok());
         assert!(write(&file_path, "dummy").is_ok());
         assert!(interpreter
-            .rename(file_path.to_string_lossy().as_ref(), &dist_path)
+            .rename(file_path.to_string_lossy().as_ref(), dist_path)
             .is_ok());
         assert!(Path::new(&dist_path).exists());
         assert!(logger.0.get());
