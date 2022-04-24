@@ -544,6 +544,11 @@ mod tests {
         };
         let parameter = ReplacementParameter::from_scaffold(&scaffold, "so", "af").unwrap();
         assert!(parameter.all_changed());
+
+        let scaffold = Scaffold::Pending {
+            file_name: "xxx".to_string()
+        };
+        assert!(ReplacementParameter::from_scaffold(&scaffold, "so", "af").is_err())
     }
 
     struct DummyLogger(Cell<bool>);
