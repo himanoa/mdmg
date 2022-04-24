@@ -1,13 +1,11 @@
-use crate::logger::StdoutLogger;
 use crate::scaffold::Scaffold;
 use crate::Result;
 use crate::{error::MdmgError, logger::Logger};
 
 use derive_more::{Constructor, Display, Into};
-use handlebars::template::Parameter;
 use inflector::Inflector;
-use std::fmt::format;
-use std::fs::{read_to_string, rename as rename_file, write};
+use std::fs::{remove_file, rename as rename_file, write};
+use std::path::Path;
 use std::sync::Arc;
 
 fn rename(rename_target: &str, before_identify: &str, after_identify: &str) -> String {
@@ -157,6 +155,7 @@ impl ReplacementOperationInterpreter for FSReplacementOperationInterpreter {
             parameter.renamed_name.as_str(),
             parameter.replaced_body.as_str(),
         )?;
+        remove_file(Path::new(parameter.id.as_str()))?;
 
         self.logger_instance.info(
             format!(
@@ -217,12 +216,18 @@ impl RenameExecutor for DefaultRenameExecutor {
 #[cfg(not(tarpaulin_include))]
 #[cfg(test)]
 mod tests {
-    use crate::rename_executor::ReplacementOperationInterpreter;
+    use crate::logger::Logger;
+    use crate::rename_executor::{
+        FSReplacementOperationInterpreter, ReplacementOperationInterpreter,
+    };
     use crate::scaffold::Scaffold;
 
     use super::{rename, run, ReplacementOperation, ReplacementParameter};
     use derive_more::Deref;
     use std::cell::Cell;
+    use std::fs::{create_dir, read_to_string, remove_dir, remove_file, write};
+    use std::path::Path;
+    use std::sync::Arc;
 
     #[test]
     fn test_rename() {
@@ -502,26 +507,127 @@ mod tests {
 
     #[test]
     fn test_from_scafold() {
-        let scaffold = Scaffold::Complete { file_name: "sooo".to_string(), file_body: "".to_string() };
-        let parameter = ReplacementParameter::from_scaffold(&scaffold, "before_identify", "after_identify").unwrap();
+        let scaffold = Scaffold::Complete {
+            file_name: "sooo".to_string(),
+            file_body: "".to_string(),
+        };
+        let parameter =
+            ReplacementParameter::from_scaffold(&scaffold, "before_identify", "after_identify")
+                .unwrap();
         assert!(!parameter.all_changed());
         assert!(!parameter.name_changed());
         assert!(!parameter.body_changed());
 
-        let scaffold = Scaffold::Complete { file_name: "sooo".to_string(), file_body: "".to_string() };
+        let scaffold = Scaffold::Complete {
+            file_name: "sooo".to_string(),
+            file_body: "".to_string(),
+        };
         let parameter = ReplacementParameter::from_scaffold(&scaffold, "so", "af").unwrap();
         assert!(parameter.name_changed());
         assert!(!parameter.all_changed());
         assert!(!parameter.body_changed());
 
-        let scaffold = Scaffold::Complete { file_name: "ooo".to_string(), file_body: "so".to_string() };
+        let scaffold = Scaffold::Complete {
+            file_name: "ooo".to_string(),
+            file_body: "so".to_string(),
+        };
         let parameter = ReplacementParameter::from_scaffold(&scaffold, "so", "af").unwrap();
         assert!(parameter.body_changed());
         assert!(!parameter.name_changed());
         assert!(!parameter.all_changed());
 
-        let scaffold = Scaffold::Complete { file_name: "so".to_string(), file_body: "so".to_string() };
+        let scaffold = Scaffold::Complete {
+            file_name: "so".to_string(),
+            file_body: "so".to_string(),
+        };
         let parameter = ReplacementParameter::from_scaffold(&scaffold, "so", "af").unwrap();
         assert!(parameter.all_changed());
+    }
+
+    struct DummyLogger(Cell<bool>);
+    impl Logger for DummyLogger {
+        fn info(&self, _info: &str) {
+            self.0.replace(true);
+        }
+        fn debug(&self, _log: &str) {}
+    }
+
+    #[test]
+    #[cfg_attr(not(feature = "fs-test"), ignore)]
+    pub fn test_fs_replacement_operation_interpreter_none() {
+        let logger = Arc::new(DummyLogger(Cell::new(false)));
+        let interpreter = FSReplacementOperationInterpreter::new(logger.clone());
+        interpreter.none("foo");
+        assert!(logger.0.get());
+    }
+
+    #[test]
+    #[cfg_attr(not(feature = "fs-test"), ignore)]
+    pub fn test_fs_replacement_operation_interpreter_rename() {
+        let path =
+            Path::new("./support/fs_rename_executor_fs_replacement_operation_interpreter_rename/");
+        let file_path = path.join("dummy.txt");
+        let logger = Arc::new(DummyLogger(Cell::new(false)));
+        let interpreter = FSReplacementOperationInterpreter::new(logger.clone());
+        let dist_path =
+            "./support/fs_rename_executor_fs_replacement_operation_interpreter_rename/bar.txt";
+
+        assert!(create_dir(path).is_ok());
+        assert!(write(&file_path, "dummy").is_ok());
+        assert!(interpreter
+            .rename(file_path.to_string_lossy().as_ref(), &dist_path)
+            .is_ok());
+        assert!(Path::new(&dist_path).exists());
+        assert!(logger.0.get());
+        assert!(remove_file(dist_path).is_ok());
+        assert!(remove_dir(path).is_ok());
+    }
+
+    #[test]
+    #[cfg_attr(not(feature = "fs-test"), ignore)]
+    pub fn test_fs_replacement_operation_interpreter_replace() {
+        let path =
+            Path::new("./support/fs_rename_executor_fs_replacement_operation_interpreter_replace/");
+        let file_path = path.join("dummy.txt");
+        let logger = Arc::new(DummyLogger(Cell::new(false)));
+        let interpreter = FSReplacementOperationInterpreter::new(logger.clone());
+
+        assert!(create_dir(path).is_ok());
+        assert!(write(&file_path, "dummy").is_ok());
+        assert!(interpreter
+            .replace(file_path.to_string_lossy().as_ref(), "replaced")
+            .is_ok());
+        assert_eq!(read_to_string(&file_path).unwrap().as_str(), "replaced");
+        assert!(logger.0.get());
+        assert!(remove_file(file_path).is_ok());
+        assert!(remove_dir(path).is_ok());
+    }
+
+    #[test]
+    #[cfg_attr(not(feature = "fs-test"), ignore)]
+    pub fn test_fs_replacement_operation_interpreter_rename_and_replace() {
+        let path = Path::new(
+            "./support/fs_rename_executor_fs_replacement_operation_interpreter_rename_and_replace/",
+        );
+        let file_path = path.join("dummy");
+        let logger = Arc::new(DummyLogger(Cell::new(false)));
+        let interpreter = FSReplacementOperationInterpreter::new(logger.clone());
+        let dist_path = Path::new("./support/fs_rename_executor_fs_replacement_operation_interpreter_rename_and_replace/dummy1");
+
+        assert!(create_dir(path).is_ok());
+        assert!(write(&file_path, "dummy").is_ok());
+        assert!(interpreter
+            .rename_and_replace(&ReplacementParameter::new(
+                file_path.to_string_lossy().to_string(),
+                dist_path.to_string_lossy().to_string(),
+                "dummy".to_string(),
+                "dummy1".to_string()
+            ))
+            .is_ok());
+        assert!(Path::new(&dist_path).exists());
+        assert_eq!(read_to_string(&dist_path).unwrap().as_str(), "dummy1");
+        assert!(logger.0.get());
+        assert!(remove_file(dist_path).is_ok());
+        assert!(remove_dir(path).is_ok());
     }
 }
