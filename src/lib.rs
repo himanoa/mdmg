@@ -10,6 +10,8 @@ mod scaffold;
 mod scaffold_executor;
 mod template;
 mod template_repository;
+mod file;
+mod generated_file_repository;
 
 use commands::rename::{RenameCommandImpl, RenameCommand};
 
