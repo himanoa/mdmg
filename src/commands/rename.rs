@@ -1,7 +1,7 @@
 use crate::Result;
 use crate::markdown::parse;
 use crate::logger::{Logger, StdoutLogger};
-use crate::rename_executor::{RenameExecutor, DefaultRenameExecutor, ReplacementOperationInterpreter, FSReplacementOperationInterpreter};
+use crate::rename_executor::{RenameExecutor, DefaultRenameExecutor, FSReplacementOperationInterpreter};
 use crate::template::{render, MdmgCtx};
 use crate::template_repository::{FSTemplateRepository, TemplateRepository};
 
@@ -19,7 +19,7 @@ pub struct RenameCommandImpl {
 }
 
 impl RenameCommandImpl {
-    fn new() -> Self {
+    pub fn new() -> Self {
         let current_dir = current_dir().expect("failed fetch current dir");
         let logger = Arc::new(StdoutLogger::new());
         let replacement_operation_interpreter_instance: Arc<FSReplacementOperationInterpreter> = Arc::new(FSReplacementOperationInterpreter::new(logger.clone()));
@@ -58,7 +58,6 @@ impl RenameCommand for RenameCommandImpl {
             Ok(scaffolds) => { scaffolds },
             Err(_) => { return Ok(()) }
         };
-        &self.rename_executor().execute(&scaffolds, identify, replaced_identify);
-        Ok(())
+        self.rename_executor().execute(&scaffolds, identify, replaced_identify)
     }
 }

@@ -11,6 +11,8 @@ mod scaffold_executor;
 mod template;
 mod template_repository;
 
+use commands::rename::{RenameCommandImpl, RenameCommand};
+
 use crate::commands::delete::{DeleteCommand, DeleteCommandImpl};
 use crate::commands::generate::{GenerateCommand, GenerateCommandImpl};
 use crate::commands::list::{ListCommand, ListCommandImpl};
@@ -44,6 +46,10 @@ pub fn run() -> Result<()> {
         } => {
             let command = DeleteCommandImpl::new();
             command.run(template_name, identify)?;
+        }
+        Mdmg::Rename { template_name, identify, replaced_identify } => {
+            let command = RenameCommandImpl::new();
+            command.run(&template_name, &identify, &replaced_identify)?;
         }
     };
     Ok(())

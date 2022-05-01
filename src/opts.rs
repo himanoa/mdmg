@@ -26,6 +26,16 @@ pub enum Mdmg {
         #[structopt()]
         identify: String,
     },
+    Rename {
+        #[structopt()]
+        template_name: String,
+
+        #[structopt()]
+        identify: String,
+
+        #[structopt()]
+        replaced_identify: String,
+    }
 }
 
 pub fn parse_cli_args() -> Mdmg {
