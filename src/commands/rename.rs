@@ -25,7 +25,7 @@ impl RenameCommandImpl {
         let replacement_operation_interpreter_instance: Arc<FSReplacementOperationInterpreter> = Arc::new(FSReplacementOperationInterpreter::new(logger.clone()));
 
         RenameCommandImpl {
-            template_repository_instance: Arc::new(FSTemplateRepository::new(current_dir)),
+            template_repository_instance: Arc::new(FSTemplateRepository::new(current_dir.join(".mdmg"))),
             logger_instance: logger.clone(),
             rename_executor_instance: Arc::new(DefaultRenameExecutor::new(replacement_operation_interpreter_instance))
         }
