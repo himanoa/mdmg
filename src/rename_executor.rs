@@ -85,7 +85,7 @@ pub enum ReplacementOperation {
     RenameAndReplace,
 }
 
-trait ReplacementOperationInterpreter {
+pub trait ReplacementOperationInterpreter {
     fn none(&self, id: &str);
     fn rename(&self, from_name: &str, to_name: &str) -> Result<()>;
     fn replace(&self, id: &str, replaced_body: &str) -> Result<()>;
@@ -112,8 +112,8 @@ fn run(
     }
 }
 
-#[derive(Constructor)]
-struct FSReplacementOperationInterpreter {
+#[derive(Constructor, Clone)]
+pub struct FSReplacementOperationInterpreter {
     logger_instance: Arc<dyn Logger>,
 }
 
@@ -186,21 +186,21 @@ impl From<&ReplacementParameter> for ReplacementOperation {
 
 pub trait RenameExecutor {
     fn execute(
-        self,
+        &self,
         scaffolds: &[Scaffold],
         before_identify: &str,
         after_identify: &str,
     ) -> Result<()>;
 }
 
-#[derive(Constructor)]
-struct DefaultRenameExecutor {
+#[derive(Constructor, Clone)]
+pub struct DefaultRenameExecutor {
     interpreter: Arc<dyn ReplacementOperationInterpreter>,
 }
 
 impl RenameExecutor for DefaultRenameExecutor {
     fn execute(
-        self,
+        &self,
         scaffolds: &[Scaffold],
         before_identify: &str,
         after_identify: &str,
