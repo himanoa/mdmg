@@ -55,8 +55,9 @@ mod tests {
     use std::sync::Mutex;
 
     use super::*;
+    use crate::file::FileName;
     use crate::logger::Logger;
-    use crate::template_repository::{FileName, TemplateRepository};
+    use crate::template_repository::TemplateRepository;
     use crate::Result;
     use derive_more::Constructor;
 
@@ -71,7 +72,7 @@ mod tests {
         }
 
         impl TemplateRepository for DummyTemplateRepository {
-            fn list(&self) -> Result<Vec<crate::template_repository::FileName>> {
+            fn list(&self) -> Result<Vec<FileName>> {
                 Ok(vec![FileName::new("foo")])
             }
             fn resolve(&self, _: String) -> Result<crate::template::Template> {
@@ -82,6 +83,9 @@ mod tests {
         impl Logger for DummyLogger {
             fn info(&self, info: &str) {
                 self.outputs.lock().unwrap().push(info.to_string());
+            }
+            fn debug(&self, _log: &str) {
+                unreachable!();
             }
         }
 

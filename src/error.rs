@@ -20,6 +20,8 @@ pub enum MdmgError {
     FailedRemoveParentDirectory(String),
     #[error("failed remove file. path: {0}")]
     FailedDeleteFile(String),
+    #[error("file({0}) is not found")]
+    GeneratedFileIsNotFound(String),
     #[error("unknown error")]
     Unknown(#[from] anyhow::Error),
 }

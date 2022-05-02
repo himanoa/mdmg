@@ -1,14 +1,19 @@
 mod commands;
 mod delete_executor;
 mod error;
+mod file;
+mod generated_file_repository;
 mod logger;
 mod markdown;
 mod opts;
 mod output;
+mod rename_executor;
 mod scaffold;
 mod scaffold_executor;
 mod template;
 mod template_repository;
+
+use commands::rename::{RenameCommand, RenameCommandImpl};
 
 use crate::commands::delete::{DeleteCommand, DeleteCommandImpl};
 use crate::commands::generate::{GenerateCommand, GenerateCommandImpl};
@@ -43,6 +48,14 @@ pub fn run() -> Result<()> {
         } => {
             let command = DeleteCommandImpl::new();
             command.run(template_name, identify)?;
+        }
+        Mdmg::Rename {
+            template_name,
+            identify,
+            replaced_identify,
+        } => {
+            let command = RenameCommandImpl::new();
+            command.run(&template_name, &identify, &replaced_identify)?;
         }
     };
     Ok(())

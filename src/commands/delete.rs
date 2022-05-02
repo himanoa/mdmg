@@ -65,7 +65,7 @@ impl DeleteCommand for DeleteCommandImpl {
 #[cfg(test)]
 mod tests {
     use crate::{
-        commands::delete::DeleteCommand, delete_executor::DeleteExecutor,
+        commands::delete::DeleteCommand, delete_executor::DeleteExecutor, file::FileName,
         template_repository::TemplateRepository,
     };
 
@@ -105,7 +105,7 @@ mod tests {
                 ))
             }
 
-            fn list(&self) -> crate::Result<Vec<crate::template_repository::FileName>> {
+            fn list(&self) -> crate::Result<Vec<FileName>> {
                 unimplemented!()
             }
         }

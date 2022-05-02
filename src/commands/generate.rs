@@ -52,21 +52,18 @@ mod tests {
     use std::fs::{remove_file, write};
     use std::path::Path;
 
-    use indoc::indoc;
-
     use super::*;
 
     fn setup_template() {
         assert!(write(
             ".mdmg/example.md",
-            indoc! {"
+            "
           ## test.md
 
           ```
           hello
           ```
-        "}
-            .to_string()
+        "
         )
         .is_ok());
     }
