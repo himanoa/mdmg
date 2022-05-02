@@ -1,4 +1,4 @@
-use crate::generated_file_repository::{self, GeneratedFileRepository};
+use crate::generated_file_repository::{GeneratedFileRepository};
 use crate::scaffold::Scaffold;
 use crate::Result;
 use crate::{error::MdmgError, logger::Logger};
@@ -6,8 +6,8 @@ use crate::{error::MdmgError, logger::Logger};
 use derive_more::{Constructor, Display, Into};
 use inflector::Inflector;
 use std::fs::{remove_file, rename as rename_file, write};
-use std::path::{Path, PathBuf};
-use std::str::FromStr;
+use std::path::{Path};
+
 use std::sync::Arc;
 
 fn rename(rename_target: &str, before_identify: &str, after_identify: &str) -> String {
@@ -56,7 +56,7 @@ impl ReplacementParameter {
                 file_body,
             } => (file_name, file_body),
         };
-        let body = generated_file_repository.resolve(&Path::new(file_name).to_path_buf())?;
+        let body = generated_file_repository.resolve(Path::new(file_name))?;
         let renamed_file_name = rename(file_name, before_identify, after_identify);
         let replaced_file_body = rename(&body, before_identify, after_identify);
 
@@ -528,7 +528,7 @@ mod tests {
         struct DummyGeneratedFileRepository(String);
 
         impl GeneratedFileRepository for DummyGeneratedFileRepository {
-            fn resolve(&self, file_name: &std::path::PathBuf) -> crate::Result<String> {
+            fn resolve(&self, _file_name: &std::path::Path) -> crate::Result<String> {
                 Ok(self.0.clone())
             }
         }
@@ -713,7 +713,7 @@ mod tests {
         struct DummyGeneratedFileRepository(RefCell<Vec<Scaffold>>);
 
         impl GeneratedFileRepository for DummyGeneratedFileRepository {
-            fn resolve(&self, _file_name: &std::path::PathBuf) -> crate::Result<String> {
+            fn resolve(&self, _file_name: &std::path::Path) -> crate::Result<String> {
                 let scaffold = self.0.borrow_mut().remove(0);
                 if let Scaffold::Complete {
                     file_body,

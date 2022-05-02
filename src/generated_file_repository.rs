@@ -1,24 +1,23 @@
 use derive_more::Constructor;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 use crate::error::MdmgError;
 use crate::Result;
 use std::fs::read_to_string;
 
 pub trait GeneratedFileRepository {
-    fn resolve(&self, file_name: &PathBuf) -> Result<String>;
+    fn resolve(&self, file_name: &Path) -> Result<String>;
 }
 
-#[derive(Debug, Clone, Constructor)]
+#[derive(Debug, Constructor)]
 pub struct FSGeneratedFileRepository {
     base: PathBuf,
 }
 
 impl GeneratedFileRepository for FSGeneratedFileRepository {
-    fn resolve(&self, path: &PathBuf) -> Result<String> {
+    fn resolve(&self, path: &Path) -> Result<String> {
         let file_path = self.base.join(path);
         read_to_string(self.base.join(path))
-            .map(|cow| cow.to_string())
             .map_err(|_| {
                 MdmgError::GeneratedFileIsNotFound(file_path.to_string_lossy().to_string())
             })

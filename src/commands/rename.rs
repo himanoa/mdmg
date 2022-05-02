@@ -34,7 +34,7 @@ impl RenameCommandImpl {
             template_repository_instance: Arc::new(FSTemplateRepository::new(
                 current_dir.join(".mdmg"),
             )),
-            logger_instance: logger.clone(),
+            logger_instance: logger,
             rename_executor_instance: Arc::new(DefaultRenameExecutor::new(
                 replacement_operation_interpreter_instance,
                 generated_file_repository,
@@ -106,10 +106,10 @@ mod tests {
 
         impl Logger for DummyLogger {
             fn info(&self, _log: &str) {
-                ()
+                
             }
             fn debug(&self, _log: &str) {
-                ()
+                
             }
         }
 
@@ -156,10 +156,10 @@ mod tests {
 
         impl Logger for DummyLogger {
             fn info(&self, _log: &str) {
-                ()
+                
             }
             fn debug(&self, _log: &str) {
-                ()
+                
             }
         }
 
@@ -191,6 +191,5 @@ mod tests {
     #[cfg_attr(not(feature = "fs-test"), ignore)]
     fn test_rename_command_impl_new_test() {
         RenameCommandImpl::new();
-        assert!(true)
     }
 }
