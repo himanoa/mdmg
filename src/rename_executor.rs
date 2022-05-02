@@ -6,7 +6,8 @@ use crate::{error::MdmgError, logger::Logger};
 use derive_more::{Constructor, Display, Into};
 use inflector::Inflector;
 use std::fs::{remove_file, rename as rename_file, write};
-use std::path::Path;
+use std::path::{Path, PathBuf};
+use std::str::FromStr;
 use std::sync::Arc;
 
 fn rename(rename_target: &str, before_identify: &str, after_identify: &str) -> String {
@@ -55,8 +56,9 @@ impl ReplacementParameter {
                 file_body,
             } => (file_name, file_body),
         };
+        let body = generated_file_repository.resolve(&Path::new(file_name).to_path_buf())?;
         let renamed_file_name = rename(file_name, before_identify, after_identify);
-        let replaced_file_body = rename(file_body, before_identify, after_identify);
+        let replaced_file_body = rename(&body, before_identify, after_identify);
 
         Ok(ReplacementParameter::new(
             file_name.clone(),
@@ -708,14 +710,16 @@ mod tests {
         }
 
         #[derive(Constructor)]
-        struct DummyGeneratedFileRepository(
-            RefCell<Vec<Scaffold>>
-        );
+        struct DummyGeneratedFileRepository(RefCell<Vec<Scaffold>>);
 
         impl GeneratedFileRepository for DummyGeneratedFileRepository {
-            fn resolve(&self, file_name: &std::path::PathBuf) -> crate::Result<String> {
+            fn resolve(&self, _file_name: &std::path::PathBuf) -> crate::Result<String> {
                 let scaffold = self.0.borrow_mut().remove(0);
-                if let Scaffold::Complete { file_body, file_name: _ } = scaffold {
+                if let Scaffold::Complete {
+                    file_body,
+                    file_name: _,
+                } = scaffold
+                {
                     return Ok(file_body);
                 }
                 Ok("".to_string())
@@ -751,7 +755,10 @@ mod tests {
 
         let executor = DefaultRenameExecutor::new(
             interpreter.clone(),
-            Arc::new(DummyGeneratedFileRepository::new(RefCell::new(scaffolds.clone()))));
+            Arc::new(DummyGeneratedFileRepository::new(RefCell::new(
+                scaffolds.clone(),
+            ))),
+        );
         assert!(executor
             .execute(&scaffolds, "replace_target", "replaced")
             .is_ok());

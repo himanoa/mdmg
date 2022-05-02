@@ -27,7 +27,8 @@ impl RenameCommandImpl {
         let logger = Arc::new(StdoutLogger::new());
         let replacement_operation_interpreter_instance: Arc<FSReplacementOperationInterpreter> =
             Arc::new(FSReplacementOperationInterpreter::new(logger.clone()));
-        let generated_file_repository: Arc<FSGeneratedFileRepository> = Arc::new(FSGeneratedFileRepository::new(current_dir.clone()));
+        let generated_file_repository: Arc<FSGeneratedFileRepository> =
+            Arc::new(FSGeneratedFileRepository::new(current_dir.clone()));
 
         RenameCommandImpl {
             template_repository_instance: Arc::new(FSTemplateRepository::new(
@@ -36,7 +37,7 @@ impl RenameCommandImpl {
             logger_instance: logger.clone(),
             rename_executor_instance: Arc::new(DefaultRenameExecutor::new(
                 replacement_operation_interpreter_instance,
-                generated_file_repository
+                generated_file_repository,
             )),
         }
     }
