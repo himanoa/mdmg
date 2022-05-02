@@ -17,10 +17,9 @@ pub struct FSGeneratedFileRepository {
 impl GeneratedFileRepository for FSGeneratedFileRepository {
     fn resolve(&self, path: &Path) -> Result<String> {
         let file_path = self.base.join(path);
-        read_to_string(self.base.join(path))
-            .map_err(|_| {
-                MdmgError::GeneratedFileIsNotFound(file_path.to_string_lossy().to_string())
-            })
+        read_to_string(self.base.join(path)).map_err(|_| {
+            MdmgError::GeneratedFileIsNotFound(file_path.to_string_lossy().to_string())
+        })
     }
 }
 

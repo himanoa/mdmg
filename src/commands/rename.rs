@@ -105,12 +105,8 @@ mod tests {
         struct DummyLogger;
 
         impl Logger for DummyLogger {
-            fn info(&self, _log: &str) {
-                
-            }
-            fn debug(&self, _log: &str) {
-                
-            }
+            fn info(&self, _log: &str) {}
+            fn debug(&self, _log: &str) {}
         }
 
         #[derive(Debug, Constructor)]
@@ -155,12 +151,8 @@ mod tests {
         struct DummyLogger;
 
         impl Logger for DummyLogger {
-            fn info(&self, _log: &str) {
-                
-            }
-            fn debug(&self, _log: &str) {
-                
-            }
+            fn info(&self, _log: &str) {}
+            fn debug(&self, _log: &str) {}
         }
 
         #[derive(Debug, Constructor)]

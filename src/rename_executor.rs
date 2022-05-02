@@ -1,4 +1,4 @@
-use crate::generated_file_repository::{GeneratedFileRepository};
+use crate::generated_file_repository::GeneratedFileRepository;
 use crate::scaffold::Scaffold;
 use crate::Result;
 use crate::{error::MdmgError, logger::Logger};
@@ -6,7 +6,7 @@ use crate::{error::MdmgError, logger::Logger};
 use derive_more::{Constructor, Display, Into};
 use inflector::Inflector;
 use std::fs::{remove_file, rename as rename_file, write};
-use std::path::{Path};
+use std::path::Path;
 
 use std::sync::Arc;
 
