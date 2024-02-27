@@ -120,12 +120,19 @@ pub fn render(template: Template, ctx: &MdmgCtx) -> Result<String> {
 
     handlebars
         .render_template(template.body.as_str(), ctx)
+        .map(expand_escaped_curly_braces)
         .map_err(|e| MdmgError::TempalteRenderError { reason: e.desc })
+}
+
+fn expand_escaped_curly_braces(input: String) -> String {
+    input.replace("\\{", "{").replace("\\}", "}")
 }
 
 #[cfg(not(tarpaulin_include))]
 #[cfg(test)]
 mod tests {
+    use crate::template::expand_escaped_curly_braces;
+
     use super::*;
     use std::default::Default;
     use std::env::{remove_var, set_var};
@@ -184,6 +191,34 @@ mod tests {
             )
             .unwrap(),
             "ExampleAccountRegister exampleAccountRegister example-account-register example_account_register"
+        )
+    }
+
+    #[test]
+    fn render_returning_foo() {
+        assert_eq!(
+            render(
+                Template::new("\\{\\{foo\\}\\}"),
+                &MdmgCtx::new("exampleAccountRegister")
+            )
+            .unwrap(),
+            "{{foo}}"
+        )
+    }
+
+    #[test]
+    fn expand_escaped_curly_braces_do_nothing() {
+        assert_eq!(
+            expand_escaped_curly_braces("fooo".to_string()),
+            "fooo".to_string()
+        )
+    }
+
+    #[test]
+    fn expand_escaped_curly_braces_remove_escape_char() {
+        assert_eq!(
+            expand_escaped_curly_braces("\\{\\{foo\\}\\}".to_string()),
+            "{{foo}}".to_string()
         )
     }
 }
