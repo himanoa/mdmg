@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.1.5
+
+### Fixed
+
+- Fix a bug where can'nt Expand double curly braces #10
 ## v0.1.3
 
 ### Added
