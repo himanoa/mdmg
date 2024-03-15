@@ -1,3 +1,5 @@
+use itertools::{Itertools, concat};
+
 use crate::error::MdmgError;
 use crate::file::FileName;
 use crate::template::Template;
@@ -23,8 +25,10 @@ impl FSTemplateRepository {
 
 impl TemplateRepository for FSTemplateRepository {
     fn list(&self) -> Result<Vec<FileName>> {
-        let dir = read_dir(&self.path)?.flatten();
-        let file_vec_result = dir
+        let local_dir = read_dir(&self.path)?.flatten();
+        let xdg_dir = xdg::BaseDirectories::with_prefix("mdmg").map(|x| x.list_data_files("")).unwrap_or(vec![]);
+
+        let local_dir_file_names = local_dir
             .map(|entry| {
                 let filename_result = entry.file_name().into_string();
                 filename_result
@@ -37,17 +41,34 @@ impl TemplateRepository for FSTemplateRepository {
                     })
                     .map_err(MdmgError::FileNameConvertError)
             })
-            .collect::<Result<Vec<_>>>();
-        file_vec_result.map(|files| {
-            let mut sorted_files = files;
-            sorted_files.sort();
-            sorted_files
-        })
+            .collect::<Result<Vec<_>>>().unwrap_or(vec![]);
+
+        let xdg_dir_file_names: Vec<FileName> = xdg_dir.iter().fold(vec![], |acc, path| {
+            let file_name_opt: Option<FileName> = path.file_stem()
+                .and_then(|name| name.to_str())
+                .and_then(|name| Some(FileName::new(name)));
+
+            match file_name_opt {
+                Some(file_name) => acc.into_iter().chain(vec![file_name]).collect::<Vec<FileName>>(),
+                None => acc
+            }
+        });
+        let file_names = concat(vec![local_dir_file_names, xdg_dir_file_names]);
+
+        Ok(file_names.into_iter().sorted().collect::<Vec<FileName>>())
     }
     fn resolve(&self, template_name: String) -> Result<Template> {
-        let templates_path = PathBuf::from(&self.path).join(format!("{}.md", template_name));
-        let body = read_to_string(templates_path)
-            .map_err(|_| MdmgError::TemplateIsNotFound(template_name))?;
+        let template_file_name = format!("{}.md", template_name);
+        let local_template_path_buf = PathBuf::from(&self.path).join(&template_file_name);
+        let local_template_path  = if local_template_path_buf.exists() { Some(local_template_path_buf) } else { None };
+        let xdg_data_dir_template_path = xdg::BaseDirectories::with_prefix("mdmg").map(|x| x.find_data_file(template_file_name)).unwrap_or(None);
+        let template_body = [local_template_path, xdg_data_dir_template_path]
+                    .into_iter()
+                    .find_map(|s| s.map(|p| { read_to_string(p).ok() }))
+                    .flatten();
+
+        let body = template_body.ok_or(MdmgError::TemplateIsNotFound(template_name))?;
+
         Ok(Template::new(body.trim()))
     }
 }
@@ -55,22 +76,33 @@ impl TemplateRepository for FSTemplateRepository {
 #[cfg(test)]
 mod tests {
     use super::{FSTemplateRepository, FileName, TemplateRepository};
-
     use crate::template::Template;
+    use std::env::{var, set_var, current_dir};
+
+    fn with_xdg_data_path<O: FnOnce() -> ()>(closure: O) {
+        let xdg_data_dir = var("XDG_DATA_HOME").unwrap_or("".to_string());
+        let current = current_dir().unwrap();
+        set_var("XDG_DATA_HOME", current.join("support/xdg_data_dir"));
+        closure();
+        set_var("XDG_DATA_HOME", xdg_data_dir);
+    }
 
     #[test]
     #[cfg_attr(not(feature = "fs-test"), ignore)]
     pub fn test_fstemplate_repository_list_return_to_files() {
-        let repository = FSTemplateRepository::new("./support/fs_template_repository_list_test");
-        let result = repository.list().expect("result is error");
-        assert_eq!(
-            result,
-            vec![
-                FileName::new("file1"),
-                FileName::new("file2"),
-                FileName::new("file3")
-            ]
-        )
+        with_xdg_data_path(|| {
+            let repository = FSTemplateRepository::new("./support/fs_template_repository_list_test");
+            let result = repository.list().expect("result is error");
+            assert_eq!(
+                result,
+                vec![
+                    FileName::new("file1"),
+                    FileName::new("file2"),
+                    FileName::new("file3"),
+                    FileName::new("file4")
+                ]
+            )
+        })
     }
 
     #[test]
@@ -89,5 +121,17 @@ mod tests {
             .resolve("foobar".to_string())
             .expect("template foobar is not found");
         assert_eq!(template, Template::new("testing"));
+    }
+
+    #[test]
+    #[cfg_attr(not(feature = "fs-test"), ignore)]
+    pub fn test_fstemplate_repository_resolve_return_to_template_when_selected_xdg_data_dir_templates() {
+        with_xdg_data_path(|| {
+            let repository = FSTemplateRepository::new("./support/fs_template_repository_resolve_test");
+            let template = repository
+                .resolve("file4".to_string())
+                .expect("template foobar is not found");
+            assert_eq!(template, Template::new("xdg data dir"));
+        })
     }
 }
