@@ -85,7 +85,7 @@ jobs:
       with:
         version: '0.19.1'
         out-type: Lcov
-        args: --all-features
+        args: --all-features -- --test-threads=1
 
     - name: Coveralls
       if: runner.os == 'Linux'
@@ -99,7 +99,7 @@ jobs:
       uses: actions-rs/cargo@v1
       with:
         command: test
-        args: --verbose --all --all-targets --all-features
+        args: --verbose --all --all-targets --all-features -- --test-threads=1
 
   release:
     strategy:
