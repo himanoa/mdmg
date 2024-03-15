@@ -23,12 +23,49 @@ impl FSTemplateRepository {
     }
 }
 
-impl TemplateRepository for FSTemplateRepository {
-    fn list(&self) -> Result<Vec<FileName>> {
-        let local_dir = read_dir(&self.path)?.flatten();
+impl FSTemplateRepository {
+    #[cfg(not(target_os = "windows"))]
+    fn xdg_files(&self) -> Vec<FileName> {
         let xdg_dir = xdg::BaseDirectories::with_prefix("mdmg")
             .map(|x| x.list_data_files(""))
             .unwrap_or(vec![]);
+        xdg_dir.iter().fold(vec![], |acc, path| {
+            let file_name_opt: Option<FileName> = path
+                .file_stem()
+                .and_then(|name| name.to_str())
+                .and_then(|name| Some(FileName::new(name)));
+
+            match file_name_opt {
+                Some(file_name) => acc
+                    .into_iter()
+                    .chain(vec![file_name])
+                    .collect::<Vec<FileName>>(),
+                None => acc,
+            }
+        })
+    }
+
+    #[cfg(target_os = "windows")]
+    fn xdg_files(&self) -> Vec<FileName> {
+        vec![]
+    }
+
+    #[cfg(not(target_os = "windows"))]
+    fn find_xdg_template_path(&self, name: String) -> Option<PathBuf> {
+        xdg::BaseDirectories::with_prefix("mdmg")
+            .map(|x| x.find_data_file(name))
+            .unwrap_or(None)
+    }
+
+    #[cfg(target_os = "windows")]
+    fn find_xdg_template_path(&self, name: String) -> Option<PathBuf> {
+        None
+    }
+}
+
+impl TemplateRepository for FSTemplateRepository {
+    fn list(&self) -> Result<Vec<FileName>> {
+        let local_dir = read_dir(&self.path)?.flatten();
 
         let local_dir_file_names = local_dir
             .map(|entry| {
@@ -46,21 +83,7 @@ impl TemplateRepository for FSTemplateRepository {
             .collect::<Result<Vec<_>>>()
             .unwrap_or(vec![]);
 
-        let xdg_dir_file_names: Vec<FileName> = xdg_dir.iter().fold(vec![], |acc, path| {
-            let file_name_opt: Option<FileName> = path
-                .file_stem()
-                .and_then(|name| name.to_str())
-                .and_then(|name| Some(FileName::new(name)));
-
-            match file_name_opt {
-                Some(file_name) => acc
-                    .into_iter()
-                    .chain(vec![file_name])
-                    .collect::<Vec<FileName>>(),
-                None => acc,
-            }
-        });
-        let file_names = concat(vec![local_dir_file_names, xdg_dir_file_names]);
+        let file_names = concat(vec![local_dir_file_names, self.xdg_files()]);
 
         Ok(file_names.into_iter().sorted().collect::<Vec<FileName>>())
     }
@@ -72,9 +95,7 @@ impl TemplateRepository for FSTemplateRepository {
         } else {
             None
         };
-        let xdg_data_dir_template_path = xdg::BaseDirectories::with_prefix("mdmg")
-            .map(|x| x.find_data_file(template_file_name))
-            .unwrap_or(None);
+        let xdg_data_dir_template_path = self.find_xdg_template_path(template_file_name);
         let template_body = [local_template_path, xdg_data_dir_template_path]
             .into_iter()
             .find_map(|s| s.map(|p| read_to_string(p).ok()))
