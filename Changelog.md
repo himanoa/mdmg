@@ -1,10 +1,17 @@
 # Changelog
 
+## v0.1.6
+
+### Added
+
+- Add support for XDG\_DATA\_HOME environment variables
+
 ## v0.1.5
 
 ### Fixed
 
 - Fix a bug where can'nt Expand double curly braces #10
+
 ## v0.1.3
 
 ### Added
