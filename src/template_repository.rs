@@ -123,6 +123,7 @@ mod tests {
 
     #[test]
     #[cfg_attr(not(feature = "fs-test"), ignore)]
+    #[cfg(not(target_os = "windows"))]
     pub fn test_fstemplate_repository_list_return_to_files() {
         with_xdg_data_path(|| {
             let repository =
@@ -160,6 +161,7 @@ mod tests {
 
     #[test]
     #[cfg_attr(not(feature = "fs-test"), ignore)]
+    #[cfg(not(target_os = "windows"))]
     pub fn test_fstemplate_repository_resolve_return_to_template_when_selected_xdg_data_dir_templates(
     ) {
         with_xdg_data_path(|| {
